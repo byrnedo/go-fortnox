@@ -16,20 +16,20 @@ Methods:
 ```go
 ## Package Function
 
-GetAccessToken(baseUrl string, authorizationCode string, clientSecret string, cFuncs ...HttpClientFunc) (string, error)
+GetAccessToken(authorizationCode string, clientSecret string, optsFuncs ...func(*AccessTokenOptions)) (string, error)
 
 ## Client methods
 
-GetOrders(p *QueryParams) ([]*OrderShort, *MetaInformation, error) {
+ListOrders(p *QueryParams) (*ListOrdersResp, error) {
 GetOrder(id string) (*OrderFull, error) {
 CreateOrder(order *CreateOrder) (*OrderFull, error) {
-PutOrder(id string, fields map[string]interface{}) (*OrderFull, error) {
-GetInvoices(p *QueryParams) ([]*InvoiceShort, *MetaInformation, error) {
+UpdateOrder(id string, fields map[string]interface{}) (*OrderFull, error) {
+ListInvoices(p *QueryParams) (*ListInvoicesResp, error) {
 GetInvoice(id string) (*InvoiceFull, error) {
 GetCompanySettings() (*CompanySettings, error) {
-GetArticles(p *QueryParams) ([]*Article, *MetaInformation, error) {
+ListArticles(p *QueryParams) (*ListArticlesResp, error) {
 GetArticle(id string) (*Article, error) {
-GetLabels() ([]*Label, error) {
+ListLabels() ([]*Label, error) {
 CreateLabel(name string) (*Label, error) {
 ```
 
