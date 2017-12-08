@@ -33,6 +33,8 @@ GetLabels() ([]*Label, error) {
 CreateLabel(name string) (*Label, error) {
 ```
 
+There are quite a few endpoints that aren't implemented yet. Feel free to make an issue or pull request.
+
 ## 'ish Types (Floatish, Intish)
 
 For some reason the fortnox api ocassionally gives back a float but sometimes a string for certain fields. 
