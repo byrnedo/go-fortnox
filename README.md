@@ -17,7 +17,7 @@ if err != nil {
 
 ```go
 // Get an access token from an authorization code 
-GetAccessToken(authorizationCode string, clientSecret string, optsFuncs ...func(*AccessTokenOptions)) (string, error)
+GetAccessToken(ctx context.Context, authorizationCode string, clientSecret string, optsFuncs ...func(*AccessTokenOptions)) (string, error)
 
 // Create new client
 NewFortnoxClient(optionsFuncs ...OptionsFunc) *Client
