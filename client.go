@@ -19,19 +19,28 @@ const (
 
 	TIME_FORMAT = "2006-01-02 15:04"
 	DATE_FORMAT = "2006-01-02"
+	API_URL     = "https://api.fortnox.se/3/"
 )
 
-type HttpClientFunc func(c *http.Client)
+type AccessTokenOptions struct {
+	BaseUrl    string
+	HttpClient *http.Client
+}
 
-func GetAccessToken(baseUrl string, authorizationCode string, clientSecret string, cFuncs ...HttpClientFunc) (string, error) {
+func GetAccessToken(authorizationCode string, clientSecret string, optsFuncs ...func(*AccessTokenOptions)) (string, error) {
 
+	accessOpts := &AccessTokenOptions{
+		BaseUrl: API_URL,
+	}
 	restClient := utils.NewRestClient(func(c *http.Client) {
 		c.Transport = &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
 		}
 
-		for _, f := range cFuncs {
-			f(c)
+		accessOpts.HttpClient = c
+
+		for _, f := range optsFuncs {
+			f(accessOpts)
 		}
 	})
 
@@ -42,7 +51,7 @@ func GetAccessToken(baseUrl string, authorizationCode string, clientSecret strin
 		"Content-Type":       mime_json,
 	}
 
-	r, err := restClient.Get(baseUrl)
+	r, err := restClient.Get(accessOpts.BaseUrl)
 	if err != nil {
 		return "", err
 	}
@@ -78,7 +87,7 @@ func GetAccessToken(baseUrl string, authorizationCode string, clientSecret strin
 
 }
 
-type FortnoxClientOptions struct {
+type ClientOptions struct {
 	// Users's access token (obtained by user when they add our integration)
 	AccessToken string
 	// Client's integration secret
@@ -148,48 +157,49 @@ type FilterParamFunc func(*QueryParams)
 
 // Client for taklking to fnox with
 //
-type FortnoxClient struct {
+type Client struct {
 	restClient *utils.RestClient
-	*FortnoxClientOptions
+	*ClientOptions
 }
 
-type OptionsFunc func(o *FortnoxClientOptions)
+type OptionsFunc func(o *ClientOptions)
 
 func WithAuthOpts(token, secret string) OptionsFunc {
-	return func(o *FortnoxClientOptions) {
+	return func(o *ClientOptions) {
 		o.AccessToken = token
 		o.ClientSecret = secret
 	}
 }
 
 func WithURLOpts(url string) OptionsFunc {
-	return func(o *FortnoxClientOptions) {
+	return func(o *ClientOptions) {
 		o.BaseUrl = url
 	}
 }
 
-func NewFortnoxClient(optionsFuncs ...OptionsFunc) *FortnoxClient {
+func NewFortnoxClient(optionsFuncs ...OptionsFunc) *Client {
 
-	o := &FortnoxClientOptions{
+	o := &ClientOptions{
 		Accepts:     mime_json,
 		ContentType: mime_json,
+		BaseUrl:     API_URL,
 	}
 	for _, f := range optionsFuncs {
 		f(o)
 	}
 
-	return &FortnoxClient{
+	return &Client{
 		restClient: utils.NewRestClient(func(c *http.Client) {
 			c.Transport = &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: o.SkipVerify},
 			}
 		}),
-		FortnoxClientOptions: o,
+		ClientOptions: o,
 	}
 }
 
-func (this *FortnoxClient) makeUrl(section string) (*url.URL, error) {
-	u, err := url.Parse(this.BaseUrl)
+func (c *Client) makeUrl(section string) (*url.URL, error) {
+	u, err := url.Parse(c.BaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -200,26 +210,28 @@ func (this *FortnoxClient) makeUrl(section string) (*url.URL, error) {
 	return u.ResolveReference(u2), nil
 }
 
-func (this *FortnoxClient) GetOrders(p *QueryParams) ([]*OrderShort, *MetaInformation, error) {
-
-	resp := &struct {
-		Orders          []*OrderShort    `json:"Orders"`
-		MetaInformation *MetaInformation `json:"MetaInformation"`
-	}{}
-
-	err := this.request("GET", "orders", nil, p, resp)
-	if err != nil {
-		return nil, nil, err
-	}
-	return resp.Orders, resp.MetaInformation, nil
+type ListOrdersResp struct {
+	Orders          []*OrderShort    `json:"Orders"`
+	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
-func (this *FortnoxClient) GetOrder(id string) (*OrderFull, error) {
+func (c *Client) ListOrders(p *QueryParams) (*ListOrdersResp, error) {
+
+	resp := &ListOrdersResp{}
+
+	err := c.request("GET", "orders", nil, p, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *Client) GetOrder(id string) (*OrderFull, error) {
 
 	resp := &struct {
 		Order *OrderFull `json:"Order"`
 	}{}
-	err := this.request("GET", "orders/"+id, nil, nil, resp)
+	err := c.request("GET", "orders/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -227,11 +239,11 @@ func (this *FortnoxClient) GetOrder(id string) (*OrderFull, error) {
 	return resp.Order, nil
 }
 
-func (this *FortnoxClient) CreateOrder(order *CreateOrder) (*OrderFull, error) {
+func (c *Client) CreateOrder(order *CreateOrder) (*OrderFull, error) {
 	orderResp := &struct {
 		Order *OrderFull `json:"Order"`
 	}{}
-	err := this.request("POST", "orders/", &struct {
+	err := c.request("POST", "orders/", &struct {
 		Order *CreateOrder `json:"Order"`
 	}{
 		Order: order,
@@ -243,12 +255,12 @@ func (this *FortnoxClient) CreateOrder(order *CreateOrder) (*OrderFull, error) {
 	return orderResp.Order, nil
 }
 
-func (this *FortnoxClient) PutOrder(id string, fields map[string]interface{}) (*OrderFull, error) {
+func (c *Client) UpdateOrder(id string, fields map[string]interface{}) (*OrderFull, error) {
 
 	resp := &struct {
 		Order *OrderFull `json:"Order"`
 	}{}
-	err := this.request("PUT", "orders/"+id, &struct {
+	err := c.request("PUT", "orders/"+id, &struct {
 		Order map[string]interface{} `json:"Order"`
 	}{
 		Order: fields,
@@ -267,26 +279,28 @@ func (this *FortnoxClient) PutOrder(id string, fields map[string]interface{}) (*
         "@TotalResources": 32
     }
 */
-func (this *FortnoxClient) GetInvoices(p *QueryParams) ([]*InvoiceShort, *MetaInformation, error) {
 
-	resp := &struct {
-		Invoices        []*InvoiceShort  `json:"Invoices"`
-		MetaInformation *MetaInformation `json:"MetaInformation"`
-	}{}
-
-	err := this.request("GET", "invoices", nil, p, resp)
-	if err != nil {
-		return nil, nil, err
-	}
-	return resp.Invoices, resp.MetaInformation, nil
+type ListInvoicesResp struct {
+	Invoices        []*InvoiceShort  `json:"Invoices"`
+	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
-func (this *FortnoxClient) GetInvoice(id string) (*InvoiceFull, error) {
+func (c *Client) ListInvoices(p *QueryParams) (*ListInvoicesResp, error) {
+	resp := &ListInvoicesResp{}
+
+	err := c.request("GET", "invoices", nil, p, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *Client) GetInvoice(id string) (*InvoiceFull, error) {
 
 	resp := &struct {
 		Invoice *InvoiceFull `json:"Invoice"`
 	}{}
-	err := this.request("GET", "invoices/"+id, nil, nil, resp)
+	err := c.request("GET", "invoices/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -294,12 +308,12 @@ func (this *FortnoxClient) GetInvoice(id string) (*InvoiceFull, error) {
 	return resp.Invoice, nil
 }
 
-func (this *FortnoxClient) GetCompanySettings() (*CompanySettings, error) {
+func (c *Client) GetCompanySettings() (*CompanySettings, error) {
 
 	resp := &struct {
 		CompanySettings *CompanySettings `json:"CompanySettings"`
 	}{}
-	err := this.request("GET", "settings/company", nil, nil, resp)
+	err := c.request("GET", "settings/company", nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -307,26 +321,27 @@ func (this *FortnoxClient) GetCompanySettings() (*CompanySettings, error) {
 	return resp.CompanySettings, nil
 }
 
-func (this *FortnoxClient) GetArticles(p *QueryParams) ([]*Article, *MetaInformation, error) {
-
-	resp := &struct {
-		Articles        []*Article       `json:"Articles"`
-		MetaInformation *MetaInformation `json:"MetaInformation"`
-	}{}
-
-	err := this.request("GET", "articles", nil, p, resp)
-	if err != nil {
-		return nil, nil, err
-	}
-	return resp.Articles, resp.MetaInformation, nil
+type ListArticlesResp struct {
+	Articles        []*Article       `json:"Articles"`
+	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
-func (this *FortnoxClient) GetArticle(id string) (*Article, error) {
+func (c *Client) ListArticles(p *QueryParams) (*ListArticlesResp, error) {
+	resp := &ListArticlesResp{}
+
+	err := c.request("GET", "articles", nil, p, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *Client) GetArticle(id string) (*Article, error) {
 
 	resp := &struct {
 		Article *Article `json:"Article"`
 	}{}
-	err := this.request("GET", "articles/"+id, nil, nil, resp)
+	err := c.request("GET", "articles/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -334,12 +349,12 @@ func (this *FortnoxClient) GetArticle(id string) (*Article, error) {
 	return resp.Article, nil
 }
 
-func (this *FortnoxClient) GetLabels() ([]*Label, error) {
+func (c *Client) ListLabels() ([]*Label, error) {
 	resp := &struct {
 		Labels []*Label `json:"Labels"`
 	}{}
 
-	err := this.request("GET", "labels", nil, nil, resp)
+	err := c.request("GET", "labels", nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -352,14 +367,14 @@ type CreateLabelReq struct {
 	} `json:"Label"`
 }
 
-func (this *FortnoxClient) CreateLabel(name string) (*Label, error) {
+func (c *Client) CreateLabel(name string) (*Label, error) {
 
 	resp := &struct {
 		Label *Label `json:"Label"`
 	}{}
 	req := CreateLabelReq{}
 	req.Label.Description = name
-	err := this.request("POST", "labels", &req, nil, resp)
+	err := c.request("POST", "labels", &req, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -367,8 +382,8 @@ func (this *FortnoxClient) CreateLabel(name string) (*Label, error) {
 	return resp.Label, nil
 }
 
-func (this *FortnoxClient) request(method, resource string, data interface{}, p *QueryParams, result interface{}) error {
-	u, err := this.makeUrl(resource)
+func (c *Client) request(method, resource string, data interface{}, p *QueryParams, result interface{}) error {
+	u, err := c.makeUrl(resource)
 	if err != nil {
 		return err
 	}
@@ -377,14 +392,14 @@ func (this *FortnoxClient) request(method, resource string, data interface{}, p 
 		u.RawQuery = p.toValues().Encode()
 	}
 
-	this.restClient.Headers = map[string]string{
-		"Access-Token":  this.AccessToken,
-		"Client-Secret": this.ClientSecret,
-		"Accept":        this.Accepts,
-		"Content-Type":  this.ContentType,
+	c.restClient.Headers = map[string]string{
+		"Access-Token":  c.AccessToken,
+		"Client-Secret": c.ClientSecret,
+		"Accept":        c.Accepts,
+		"Content-Type":  c.ContentType,
 	}
 
-	r, err := this.restClient.DoJson(method, u.String(), data)
+	r, err := c.restClient.DoJson(method, u.String(), data)
 	if err != nil {
 		return err
 	}
@@ -395,7 +410,7 @@ func (this *FortnoxClient) request(method, resource string, data interface{}, p 
 	case 200, 201:
 		if result != nil {
 			if e := r.AsJson(result); e != nil {
-				return errors.Wrap(e, "Failed to decode json from ["+string(r.GetBody())+"]")
+				return errors.Wrap(e, "Failed to decode json")
 			}
 		}
 		return nil
@@ -407,7 +422,7 @@ func (this *FortnoxClient) request(method, resource string, data interface{}, p 
 			&ErrorMessage{},
 		}
 		if e := r.AsJson(errMsg); e != nil {
-			return errors.Wrap(e, "Failed to decode json from ["+string(r.GetBody())+"]")
+			return errors.Wrap(e, "Failed to decode json")
 		}
 		return errors.New(fmt.Sprintf("%d: %s", errMsg.ErrorInformation.Code, errMsg.ErrorInformation.Message))
 

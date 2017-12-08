@@ -5,13 +5,8 @@ import (
 	pth "github.com/byrnedo/apibase/helpers/pointerhelp"
 	"github.com/byrnedo/apibase/helpers/stringhelp"
 	"gopkg.in/jarcoal/httpmock.v1"
-	"net/http"
 	"os"
 	"testing"
-)
-
-const (
-	fnoxUrl = "https://api.fortnox.se/3/"
 )
 
 var (
@@ -29,18 +24,18 @@ func init() {
 }
 
 func addTestOpts() []OptionsFunc {
-	return []OptionsFunc{WithAuthOpts(accessToken, secret), WithURLOpts(fnoxUrl)}
+	return []OptionsFunc{WithAuthOpts(accessToken, secret)}
 }
 
 func TestGetAccessToken(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterResponder("GET", fnoxUrl,
+	httpmock.RegisterResponder("GET", API_URL,
 		httpmock.NewStringResponder(200, `{"Authorization": {"AccessToken": "test"}}`))
 
-	token, err := GetAccessToken(fnoxUrl, "test", secret, func(c *http.Client) {
-		httpmock.ActivateNonDefault(c)
+	token, err := GetAccessToken("test", secret, func(opts *AccessTokenOptions) {
+		httpmock.ActivateNonDefault(opts.HttpClient)
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -74,15 +69,15 @@ func TestNewFortnoxClient(t *testing.T) {
 func TestGetOrders(t *testing.T) {
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, m, err := c.GetOrders(nil)
+	r, err := c.ListOrders(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m == nil {
+	if r.MetaInformation == nil {
 		t.Fatal("Meta was nil")
 	}
 
-	if r == nil {
+	if r.Orders == nil {
 		t.Fatal("Response was nil")
 	}
 	//pretty.Print(r)
@@ -102,15 +97,15 @@ func TestGetOrder(t *testing.T) {
 func TestGetInvoices(t *testing.T) {
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, m, err := c.GetInvoices(nil)
+	r, err := c.ListInvoices(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m == nil {
+	if r.MetaInformation == nil {
 		t.Fatal("Meta was nil")
 	}
 
-	if r == nil {
+	if r.Invoices == nil {
 		t.Fatal("Response was nil")
 	}
 	//pretty.Print(r)
@@ -147,15 +142,15 @@ func TestFortnoxClient_GetArticles(t *testing.T) {
 
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, m, err := c.GetArticles(nil)
+	r, err := c.ListArticles(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m == nil {
+	if r.MetaInformation == nil {
 		t.Fatal("Meta was nil")
 	}
 
-	if r == nil {
+	if r.Articles == nil {
 		t.Fatal("Response was nil")
 	}
 
@@ -179,7 +174,7 @@ func TestFortnoxClient_GetLabels(t *testing.T) {
 
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, err := c.GetLabels()
+	r, err := c.ListLabels()
 	if err != nil {
 		t.Fatal(err)
 	}
