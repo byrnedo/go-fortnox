@@ -116,7 +116,7 @@ type CompanySettings struct {
 	ContactLastName    string `json:"ContactLastName"`
 	Country            string `json:"Country"`
 	CountryCode        string `json:"CountryCode"`
-	DatabaseNumber     int    `json:"DatabaseNumber"`
+	DatabaseNumber     Intish `json:"DatabaseNumber"`
 	Domicile           string `json:"Domicile"`
 	Email              string `json:"Email"`
 	Fax                string `json:"Fax"`
