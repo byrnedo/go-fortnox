@@ -1,6 +1,7 @@
 package fortnox
 
 import (
+	"context"
 	"fmt"
 	pth "github.com/byrnedo/apibase/helpers/pointerhelp"
 	"github.com/byrnedo/apibase/helpers/stringhelp"
@@ -34,7 +35,7 @@ func TestGetAccessToken(t *testing.T) {
 	httpmock.RegisterResponder("GET", API_URL,
 		httpmock.NewStringResponder(200, `{"Authorization": {"AccessToken": "test"}}`))
 
-	token, err := GetAccessToken("test", secret, func(opts *AccessTokenOptions) {
+	token, err := GetAccessToken(context.Background(), "test", secret, func(opts *AccessTokenOptions) {
 		httpmock.ActivateNonDefault(opts.HttpClient)
 	})
 	if err != nil {
@@ -49,19 +50,19 @@ func TestNewFortnoxClient(t *testing.T) {
 
 	c := NewFortnoxClient(WithAuthOpts("token", "secret"), WithURLOpts("url"))
 
-	if c.BaseUrl != "url" {
+	if c.clientOptions.BaseUrl != "url" {
 		t.Fatal("Incorrect url")
 	}
 
-	if c.AccessToken != "token" {
+	if c.clientOptions.AccessToken != "token" {
 		t.Fatal("Incorrect token")
 	}
 
-	if c.ClientSecret != "secret" {
+	if c.clientOptions.ClientSecret != "secret" {
 		t.Fatal("Incorrect secret")
 	}
 
-	if c.ContentType != "application/json" {
+	if c.clientOptions.ContentType != "application/json" {
 		t.Fatal("Incorrect content type")
 	}
 }
@@ -69,7 +70,7 @@ func TestNewFortnoxClient(t *testing.T) {
 func TestGetOrders(t *testing.T) {
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, err := c.ListOrders(nil)
+	r, err := c.ListOrders(context.Background(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +87,7 @@ func TestGetOrders(t *testing.T) {
 func TestGetOrder(t *testing.T) {
 	c := NewFortnoxClient(addTestOpts()...)
 	for i := 1; i < 10; i++ {
-		_, err := c.GetOrder(fmt.Sprintf("%d", i))
+		_, err := c.GetOrder(context.Background(), fmt.Sprintf("%d", i))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -97,7 +98,7 @@ func TestGetOrder(t *testing.T) {
 func TestGetInvoices(t *testing.T) {
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, err := c.ListInvoices(nil)
+	r, err := c.ListInvoices(context.Background(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +115,7 @@ func TestGetInvoices(t *testing.T) {
 func TestGetInvoice(t *testing.T) {
 	c := NewFortnoxClient(addTestOpts()...)
 	for i := 1; i < 10; i++ {
-		r, err := c.GetInvoice(fmt.Sprintf("%d", i))
+		r, err := c.GetInvoice(context.Background(), fmt.Sprintf("%d", i))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -127,7 +128,7 @@ func TestGetInvoice(t *testing.T) {
 
 func TestFortnoxClient_GetCompanySettings(t *testing.T) {
 	c := NewFortnoxClient(addTestOpts()...)
-	r, err := c.GetCompanySettings()
+	r, err := c.GetCompanySettings(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +143,7 @@ func TestFortnoxClient_GetArticles(t *testing.T) {
 
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, err := c.ListArticles(nil)
+	r, err := c.ListArticles(context.Background(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,7 +161,7 @@ func TestFortnoxClient_GetArticle(t *testing.T) {
 
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, err := c.GetArticle("10")
+	r, err := c.GetArticle(context.Background(), "10")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -174,7 +175,7 @@ func TestFortnoxClient_GetLabels(t *testing.T) {
 
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, err := c.ListLabels()
+	r, err := c.ListLabels(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +190,7 @@ func TestFortnoxClient_CreateLabel(t *testing.T) {
 
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, err := c.CreateLabel("test" + stringhelp.RandString(4))
+	r, err := c.CreateLabel(context.Background(), "test"+stringhelp.RandString(4))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +209,7 @@ func TestFortnoxClient_CreateOrder(t *testing.T) {
 			{Description: pth.StringPtr("Desc Text")},
 		},
 	}
-	r, err := c.CreateOrder(order)
+	r, err := c.CreateOrder(context.Background(), order)
 	if err != nil {
 		t.Fatal(err)
 	}

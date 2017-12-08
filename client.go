@@ -1,25 +1,34 @@
 package fortnox
 
 import (
-	"crypto/tls"
+	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/byrnedo/apibase/utils"
 	"github.com/pkg/errors"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
 )
 
-var (
-	ErrUnauthorized = errors.New("Unauthorized")
-)
-
 const (
-	mime_json = "application/json"
+	mimeJson = "application/json"
 
 	TIME_FORMAT = "2006-01-02 15:04"
 	DATE_FORMAT = "2006-01-02"
 	API_URL     = "https://api.fortnox.se/3/"
+)
+
+var (
+	// Error return in the case of 401
+	ErrUnauthorized = errors.New("Unauthorized")
+
+	defaultTimeout  = time.Duration(20 * time.Second)
+	defaultHeaders  = map[string]string{
+		"Accept":       mimeJson,
+		"Content-Type": mimeJson,
+	}
 )
 
 type AccessTokenOptions struct {
@@ -27,33 +36,19 @@ type AccessTokenOptions struct {
 	HttpClient *http.Client
 }
 
-func GetAccessToken(authorizationCode string, clientSecret string, optsFuncs ...func(*AccessTokenOptions)) (string, error) {
+func GetAccessToken(ctx context.Context, authorizationCode string, clientSecret string, optsFuncs ...func(*AccessTokenOptions)) (string, error) {
 
-	accessOpts := &AccessTokenOptions{
-		BaseUrl: API_URL,
+	opts := &AccessTokenOptions{
+		BaseUrl:    API_URL,
+		HttpClient: &http.Client{Timeout: defaultTimeout},
 	}
-	restClient := utils.NewRestClient(func(c *http.Client) {
-		c.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
-		}
+	for _, f := range optsFuncs {
+		f(opts)
+	}
 
-		accessOpts.HttpClient = c
-
-		for _, f := range optsFuncs {
-			f(accessOpts)
-		}
-	})
-
-	restClient.Headers = map[string]string{
+	headers := map[string]string{
 		"Authorization-Code": authorizationCode,
 		"Client-Secret":      clientSecret,
-		"Accept":             mime_json,
-		"Content-Type":       mime_json,
-	}
-
-	r, err := restClient.Get(accessOpts.BaseUrl)
-	if err != nil {
-		return "", err
 	}
 
 	result := &struct {
@@ -61,30 +56,12 @@ func GetAccessToken(authorizationCode string, clientSecret string, optsFuncs ...
 			AccessToken string `json:"AccessToken"`
 		} `json:"Authorization"`
 	}{}
-	switch r.Response.StatusCode {
-	case 401:
-		return "", ErrUnauthorized
-	case 200, 201:
-		err := r.AsJson(result)
-		if err != nil {
-			return "", errors.Wrap(err, "Failed to decode json from ["+string(r.GetBody())+"]")
-		}
 
-		return result.Authorization.AccessToken, nil
-
-	default:
-
-		errMsg := &struct {
-			ErrorInformation *ErrorMessage
-		}{
-			&ErrorMessage{},
-		}
-		if e := r.AsJson(errMsg); e != nil {
-			return "", errors.Wrap(e, "Failed to decode json from ["+string(r.GetBody())+"]")
-		}
-		return "", errors.New(fmt.Sprintf("%d: %s", errMsg.ErrorInformation.Code, errMsg.ErrorInformation.Message))
+	if err := request(opts.HttpClient, ctx, headers, "GET", opts.BaseUrl, nil, nil, result); err != nil {
+		return "", err
 	}
 
+	return result.Authorization.AccessToken, nil
 }
 
 type ClientOptions struct {
@@ -96,6 +73,7 @@ type ClientOptions struct {
 	ContentType  string
 	BaseUrl      string
 	SkipVerify   bool
+	HttpClient   *http.Client
 }
 
 // Query param info from docs
@@ -158,8 +136,7 @@ type FilterParamFunc func(*QueryParams)
 // Client for taklking to fnox with
 //
 type Client struct {
-	restClient *utils.RestClient
-	*ClientOptions
+	clientOptions *ClientOptions
 }
 
 type OptionsFunc func(o *ClientOptions)
@@ -179,27 +156,25 @@ func WithURLOpts(url string) OptionsFunc {
 
 func NewFortnoxClient(optionsFuncs ...OptionsFunc) *Client {
 
+	c := &http.Client{Timeout: defaultTimeout}
+
 	o := &ClientOptions{
-		Accepts:     mime_json,
-		ContentType: mime_json,
+		Accepts:     mimeJson,
+		ContentType: mimeJson,
 		BaseUrl:     API_URL,
+		HttpClient:  c,
 	}
 	for _, f := range optionsFuncs {
 		f(o)
 	}
 
 	return &Client{
-		restClient: utils.NewRestClient(func(c *http.Client) {
-			c.Transport = &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: o.SkipVerify},
-			}
-		}),
-		ClientOptions: o,
+		clientOptions: o,
 	}
 }
 
 func (c *Client) makeUrl(section string) (*url.URL, error) {
-	u, err := url.Parse(c.BaseUrl)
+	u, err := url.Parse(c.clientOptions.BaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -215,23 +190,23 @@ type ListOrdersResp struct {
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
-func (c *Client) ListOrders(p *QueryParams) (*ListOrdersResp, error) {
+func (c *Client) ListOrders(ctx context.Context, p *QueryParams) (*ListOrdersResp, error) {
 
 	resp := &ListOrdersResp{}
 
-	err := c.request("GET", "orders", nil, p, resp)
+	err := c.request(ctx, "GET", "orders", nil, p, resp)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *Client) GetOrder(id string) (*OrderFull, error) {
+func (c *Client) GetOrder(ctx context.Context, id string) (*OrderFull, error) {
 
 	resp := &struct {
 		Order *OrderFull `json:"Order"`
 	}{}
-	err := c.request("GET", "orders/"+id, nil, nil, resp)
+	err := c.request(ctx, "GET", "orders/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -239,11 +214,11 @@ func (c *Client) GetOrder(id string) (*OrderFull, error) {
 	return resp.Order, nil
 }
 
-func (c *Client) CreateOrder(order *CreateOrder) (*OrderFull, error) {
+func (c *Client) CreateOrder(ctx context.Context, order *CreateOrder) (*OrderFull, error) {
 	orderResp := &struct {
 		Order *OrderFull `json:"Order"`
 	}{}
-	err := c.request("POST", "orders/", &struct {
+	err := c.request(ctx, "POST", "orders/", &struct {
 		Order *CreateOrder `json:"Order"`
 	}{
 		Order: order,
@@ -255,12 +230,12 @@ func (c *Client) CreateOrder(order *CreateOrder) (*OrderFull, error) {
 	return orderResp.Order, nil
 }
 
-func (c *Client) UpdateOrder(id string, fields map[string]interface{}) (*OrderFull, error) {
+func (c *Client) UpdateOrder(ctx context.Context, id string, fields map[string]interface{}) (*OrderFull, error) {
 
 	resp := &struct {
 		Order *OrderFull `json:"Order"`
 	}{}
-	err := c.request("PUT", "orders/"+id, &struct {
+	err := c.request(ctx, "PUT", "orders/"+id, &struct {
 		Order map[string]interface{} `json:"Order"`
 	}{
 		Order: fields,
@@ -285,22 +260,22 @@ type ListInvoicesResp struct {
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
-func (c *Client) ListInvoices(p *QueryParams) (*ListInvoicesResp, error) {
+func (c *Client) ListInvoices(ctx context.Context, p *QueryParams) (*ListInvoicesResp, error) {
 	resp := &ListInvoicesResp{}
 
-	err := c.request("GET", "invoices", nil, p, resp)
+	err := c.request(ctx, "GET", "invoices", nil, p, resp)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *Client) GetInvoice(id string) (*InvoiceFull, error) {
+func (c *Client) GetInvoice(ctx context.Context, id string) (*InvoiceFull, error) {
 
 	resp := &struct {
 		Invoice *InvoiceFull `json:"Invoice"`
 	}{}
-	err := c.request("GET", "invoices/"+id, nil, nil, resp)
+	err := c.request(ctx, "GET", "invoices/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -308,12 +283,12 @@ func (c *Client) GetInvoice(id string) (*InvoiceFull, error) {
 	return resp.Invoice, nil
 }
 
-func (c *Client) GetCompanySettings() (*CompanySettings, error) {
+func (c *Client) GetCompanySettings(ctx context.Context) (*CompanySettings, error) {
 
 	resp := &struct {
 		CompanySettings *CompanySettings `json:"CompanySettings"`
 	}{}
-	err := c.request("GET", "settings/company", nil, nil, resp)
+	err := c.request(ctx, "GET", "settings/company", nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -326,22 +301,22 @@ type ListArticlesResp struct {
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
-func (c *Client) ListArticles(p *QueryParams) (*ListArticlesResp, error) {
+func (c *Client) ListArticles(ctx context.Context, p *QueryParams) (*ListArticlesResp, error) {
 	resp := &ListArticlesResp{}
 
-	err := c.request("GET", "articles", nil, p, resp)
+	err := c.request(ctx, "GET", "articles", nil, p, resp)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *Client) GetArticle(id string) (*Article, error) {
+func (c *Client) GetArticle(ctx context.Context, id string) (*Article, error) {
 
 	resp := &struct {
 		Article *Article `json:"Article"`
 	}{}
-	err := c.request("GET", "articles/"+id, nil, nil, resp)
+	err := c.request(ctx, "GET", "articles/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -349,12 +324,12 @@ func (c *Client) GetArticle(id string) (*Article, error) {
 	return resp.Article, nil
 }
 
-func (c *Client) ListLabels() ([]*Label, error) {
+func (c *Client) ListLabels(ctx context.Context) ([]*Label, error) {
 	resp := &struct {
 		Labels []*Label `json:"Labels"`
 	}{}
 
-	err := c.request("GET", "labels", nil, nil, resp)
+	err := c.request(ctx, "GET", "labels", nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -367,14 +342,14 @@ type CreateLabelReq struct {
 	} `json:"Label"`
 }
 
-func (c *Client) CreateLabel(name string) (*Label, error) {
+func (c *Client) CreateLabel(ctx context.Context, name string) (*Label, error) {
 
 	resp := &struct {
 		Label *Label `json:"Label"`
 	}{}
 	req := CreateLabelReq{}
 	req.Label.Description = name
-	err := c.request("POST", "labels", &req, nil, resp)
+	err := c.request(ctx, "POST", "labels", &req, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +357,7 @@ func (c *Client) CreateLabel(name string) (*Label, error) {
 	return resp.Label, nil
 }
 
-func (c *Client) request(method, resource string, data interface{}, p *QueryParams, result interface{}) error {
+func (c *Client) request(ctx context.Context, method, resource string, body interface{}, p *QueryParams, result interface{}) error {
 	u, err := c.makeUrl(resource)
 	if err != nil {
 		return err
@@ -392,28 +367,53 @@ func (c *Client) request(method, resource string, data interface{}, p *QueryPara
 		u.RawQuery = p.toValues().Encode()
 	}
 
-	c.restClient.Headers = map[string]string{
-		"Access-Token":  c.AccessToken,
-		"Client-Secret": c.ClientSecret,
-		"Accept":        c.Accepts,
-		"Content-Type":  c.ContentType,
+	headers := map[string]string{
+		"Access-Token":  c.clientOptions.AccessToken,
+		"Client-Secret": c.clientOptions.ClientSecret,
 	}
 
-	r, err := c.restClient.DoJson(method, u.String(), data)
+	bodyBuffer := new(bytes.Buffer)
+	json.NewEncoder(bodyBuffer).Encode(body)
+
+	return request(c.clientOptions.HttpClient, ctx, headers, method, u.String(), bodyBuffer, p, result)
+
+}
+
+func request(client *http.Client, ctx context.Context, headers map[string]string, method, url string, data io.Reader, p *QueryParams, result interface{}) error {
+
+	req, err := http.NewRequest(method, url, data)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "error creating request")
 	}
 
-	switch r.Response.StatusCode {
+	req.WithContext(ctx)
+
+	for k, v := range defaultHeaders {
+		req.Header.Add(k, v)
+	}
+
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "error sending request")
+	}
+
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200, 201:
-		if result != nil {
-			if e := r.AsJson(result); e != nil {
-				return errors.Wrap(e, "Failed to decode json")
-			}
+
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return errors.Wrap(err, "failed to decode json")
 		}
+
 		return nil
+
 	default:
 
 		errMsg := &struct {
@@ -421,11 +421,10 @@ func (c *Client) request(method, resource string, data interface{}, p *QueryPara
 		}{
 			&ErrorMessage{},
 		}
-		if e := r.AsJson(errMsg); e != nil {
-			return errors.Wrap(e, "Failed to decode json")
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return errors.Wrap(err, "failed to decode json")
 		}
 		return errors.New(fmt.Sprintf("%d: %s", errMsg.ErrorInformation.Code, errMsg.ErrorInformation.Message))
-
 	}
 
 }

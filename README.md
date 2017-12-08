@@ -26,17 +26,21 @@ NewFortnoxClient(optionsFuncs ...OptionsFunc) *Client
 ### Client methods
 
 ```go
-ListOrders(p *QueryParams) (*ListOrdersResp, error) {
-GetOrder(id string) (*OrderFull, error) {
-CreateOrder(order *CreateOrder) (*OrderFull, error) {
-UpdateOrder(id string, fields map[string]interface{}) (*OrderFull, error) {
-ListInvoices(p *QueryParams) (*ListInvoicesResp, error) {
-GetInvoice(id string) (*InvoiceFull, error) {
-GetCompanySettings() (*CompanySettings, error) {
-ListArticles(p *QueryParams) (*ListArticlesResp, error) {
-GetArticle(id string) (*Article, error) {
-ListLabels() ([]*Label, error) {
-CreateLabel(name string) (*Label, error) {
+GetOrder(ctx context.Context, id string) (*OrderFull, error) {
+CreateOrder(ctx context.Context, order *CreateOrder) (*OrderFull, error) {
+UpdateOrder(ctx context.Context, id string, fields map[string]interface{}) (*OrderFull, error) {
+
+ListInvoices(ctx context.Context, p *QueryParams) (*ListInvoicesResp, error) {
+GetInvoice(ctx context.Context, id string) (*InvoiceFull, error) {
+
+GetCompanySettings(ctx context.Context) (*CompanySettings, error) {
+
+ListArticles(ctx context.Context, p *QueryParams) (*ListArticlesResp, error) {
+GetArticle(ctx context.Context, id string) (*Article, error) {
+
+ListLabels(ctx context.Context) ([]*Label, error) {
+CreateLabel(ctx context.Context, name string) (*Label, error) {
+
 ```
 
 There are quite a few endpoints that aren't implemented yet. Feel free to make an issue or pull request.

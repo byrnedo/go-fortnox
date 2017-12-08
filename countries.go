@@ -1,6 +1,6 @@
-// TODO - remove this and it's usages once fortnox send CountryCode in order and invoice responses
 package fortnox
 
+// CountryMap is a mapping of fortnox's internal country strings. Can be handy if you need the country code.
 // TODO - remove when fortnox send CountryCode in orders/invoices
 var CountryMap = map[string]string{
 	"Afghanistan":                     "AF",
