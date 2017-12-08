@@ -1,5 +1,7 @@
 # Go Fortnox Client
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/byrnedo/go-fortnox)](https://goreportcard.com/report/github.com/byrnedo/go-fortnox)
+
 A client for [Fortnox's](https://www.fortnox.se) REST api.
 
 ```go
