@@ -11,15 +11,17 @@ if err != nil {
 }
 ```
 
-Methods:
+## Methods:
+
+### Package Function
 
 ```go
-## Package Function
-
 GetAccessToken(baseUrl string, authorizationCode string, clientSecret string, cFuncs ...HttpClientFunc) (string, error)
+```
 
-## Client methods
+### Client methods
 
+```go
 GetOrders(p *QueryParams) ([]*OrderShort, *MetaInformation, error) {
 GetOrder(id string) (*OrderFull, error) {
 CreateOrder(order *CreateOrder) (*OrderFull, error) {
@@ -42,4 +44,4 @@ I made these two types for dealing with those situations for unmarshalling.
 
 ## Running Tests
 
-You need to set the FORTNOX_AUTH_CODE, FORTNOX_ACCESS_TOKEN and FORTNOX_CLIENT_SECRET envs when running the tests.
+You need to set the `FORTNOX_AUTH_CODE`, `FORTNOX_ACCESS_TOKEN` and `FORTNOX_CLIENT_SECRET` envs when running the tests.
