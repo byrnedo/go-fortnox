@@ -61,23 +61,24 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	if y, err := strconv.Atoi(v[0:4]); err != nil {
+	y, err := strconv.Atoi(v[0:4])
+	if err != nil {
 		return err
-	} else {
-		d.Year = y
 	}
+	d.Year = y
 
-	if m, err := strconv.Atoi(v[5:7]); err != nil {
-		return err
-	} else {
-		d.Month = m
-	}
+	m, err := strconv.Atoi(v[5:7])
+	if err != nil {
 
-	if da, err := strconv.Atoi(v[8:]); err != nil {
 		return err
-	} else {
-		d.Date = da
 	}
+	d.Month = m
+
+	da, err := strconv.Atoi(v[8:])
+	if err != nil {
+		return err
+	}
+	d.Date = da
 
 	return nil
 }
@@ -89,6 +90,7 @@ func (d *Date) UnmarshalJSON(data []byte) error {
        "@TotalResources": 32
    }
 */
+// MetaInformation
 type MetaInformation struct {
 	CurrentPage    int `json:"@CurrentPage"`
 	TotalPages     int `json:"@TotalPages"`

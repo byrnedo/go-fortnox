@@ -13,34 +13,39 @@ import (
 )
 
 const (
-	mimeJson = "application/json"
+	mimeJSON = "application/json"
+	// TimeFormat is the format that fortnox expects
+	TimeFormat = "2006-01-02 15:04"
+	// DateFormat that fortnox expects
+	DateFormat = "2006-01-02"
 
-	TIME_FORMAT = "2006-01-02 15:04"
-	DATE_FORMAT = "2006-01-02"
-	API_URL     = "https://api.fortnox.se/3/"
+	// DefaultURL is the default api url
+	DefaultURL = "https://api.fortnox.se/3/"
 )
 
 var (
-	// Error return in the case of 401
+	// ErrUnauthorized is the error returned in the case of 401
 	ErrUnauthorized = errors.New("Unauthorized")
 
-	defaultTimeout  = time.Duration(20 * time.Second)
-	defaultHeaders  = map[string]string{
-		"Accept":       mimeJson,
-		"Content-Type": mimeJson,
+	defaultTimeout = time.Duration(20 * time.Second)
+	defaultHeaders = map[string]string{
+		"Accept":       mimeJSON,
+		"Content-Type": mimeJSON,
 	}
 )
 
+//AccessTokenOptions are options used when creating access tokens
 type AccessTokenOptions struct {
-	BaseUrl    string
-	HttpClient *http.Client
+	BaseURL    string
+	HTTPClient *http.Client
 }
 
+// GetAccessToken from an auth code for a client. Careful, do this only once per auth code
 func GetAccessToken(ctx context.Context, authorizationCode string, clientSecret string, optsFuncs ...func(*AccessTokenOptions)) (string, error) {
 
 	opts := &AccessTokenOptions{
-		BaseUrl:    API_URL,
-		HttpClient: &http.Client{Timeout: defaultTimeout},
+		BaseURL:    DefaultURL,
+		HTTPClient: &http.Client{Timeout: defaultTimeout},
 	}
 	for _, f := range optsFuncs {
 		f(opts)
@@ -57,13 +62,14 @@ func GetAccessToken(ctx context.Context, authorizationCode string, clientSecret 
 		} `json:"Authorization"`
 	}{}
 
-	if err := request(opts.HttpClient, ctx, headers, "GET", opts.BaseUrl, nil, nil, result); err != nil {
+	if err := request(ctx, opts.HTTPClient, headers, "GET", opts.BaseURL, nil, nil, result); err != nil {
 		return "", err
 	}
 
 	return result.Authorization.AccessToken, nil
 }
 
+// ClientOptions for creating the main client
 type ClientOptions struct {
 	// Users's access token (obtained by user when they add our integration)
 	AccessToken string
@@ -71,13 +77,13 @@ type ClientOptions struct {
 	ClientSecret string
 	Accepts      string
 	ContentType  string
-	BaseUrl      string
+	BaseURL      string
 	SkipVerify   bool
-	HttpClient   *http.Client
+	HTTPClient   *http.Client
 }
 
-// Query param info from docs
-//:
+// QueryParams when searching orders/invoices
+// From fortnox docs:
 // SEARCH NAME	DESCRIPTION	EXAMPLE VALUE
 // lastmodified	Retrieves all records since the provided timestamp.	2014-03-10 12:30
 // financialyear	Selects what financial year that should be used	5
@@ -98,49 +104,48 @@ type QueryParams struct {
 	Extra             map[string][]string
 }
 
-func (this *QueryParams) toValues() url.Values {
+func (p *QueryParams) toValues() url.Values {
 
 	ret := make(url.Values)
-	if !this.LastModified.IsZero() {
-		ret["lastmodified"] = []string{this.LastModified.Format(TIME_FORMAT)}
+	if !p.LastModified.IsZero() {
+		ret["lastmodified"] = []string{p.LastModified.Format(TimeFormat)}
 	}
-	if this.FinancialYear > 0 {
-		ret["financialyear"] = []string{fmt.Sprintf("%d", this.FinancialYear)}
+	if p.FinancialYear > 0 {
+		ret["financialyear"] = []string{fmt.Sprintf("%d", p.FinancialYear)}
 	}
-	if len(this.FinancialYearDate) > 0 {
-		ret["financialyeardate"] = []string{this.FinancialYearDate}
+	if len(p.FinancialYearDate) > 0 {
+		ret["financialyeardate"] = []string{p.FinancialYearDate}
 	}
-	if len(this.FromDate) > 0 {
-		ret["fromdate"] = []string{this.FromDate}
+	if len(p.FromDate) > 0 {
+		ret["fromdate"] = []string{p.FromDate}
 	}
-	if len(this.ToDate) > 0 {
-		ret["todate"] = []string{this.ToDate}
+	if len(p.ToDate) > 0 {
+		ret["todate"] = []string{p.ToDate}
 	}
-	if this.Limit > 0 {
-		ret["limit"] = []string{fmt.Sprintf("%d", this.Limit)}
+	if p.Limit > 0 {
+		ret["limit"] = []string{fmt.Sprintf("%d", p.Limit)}
 	}
-	if this.Offset > 0 {
-		ret["offset"] = []string{fmt.Sprintf("%d", this.Offset)}
+	if p.Offset > 0 {
+		ret["offset"] = []string{fmt.Sprintf("%d", p.Offset)}
 	}
-	if this.Page > 0 {
-		ret["page"] = []string{fmt.Sprintf("%d", this.Page)}
+	if p.Page > 0 {
+		ret["page"] = []string{fmt.Sprintf("%d", p.Page)}
 	}
-	for k, vs := range this.Extra {
+	for k, vs := range p.Extra {
 		ret[k] = vs
 	}
 	return ret
 }
 
-type FilterParamFunc func(*QueryParams)
-
-// Client for taklking to fnox with
-//
+// Client for fortnox api calls
 type Client struct {
 	clientOptions *ClientOptions
 }
 
+// OptionsFunc sig for customising options
 type OptionsFunc func(o *ClientOptions)
 
+// WithAuthOpts helper for adding auth
 func WithAuthOpts(token, secret string) OptionsFunc {
 	return func(o *ClientOptions) {
 		o.AccessToken = token
@@ -148,21 +153,23 @@ func WithAuthOpts(token, secret string) OptionsFunc {
 	}
 }
 
+// WithURLOpts helper for changing base url
 func WithURLOpts(url string) OptionsFunc {
 	return func(o *ClientOptions) {
-		o.BaseUrl = url
+		o.BaseURL = url
 	}
 }
 
+// NewFortnoxClient creates a new client
 func NewFortnoxClient(optionsFuncs ...OptionsFunc) *Client {
 
 	c := &http.Client{Timeout: defaultTimeout}
 
 	o := &ClientOptions{
-		Accepts:     mimeJson,
-		ContentType: mimeJson,
-		BaseUrl:     API_URL,
-		HttpClient:  c,
+		Accepts:     mimeJSON,
+		ContentType: mimeJSON,
+		BaseURL:     DefaultURL,
+		HTTPClient:  c,
 	}
 	for _, f := range optionsFuncs {
 		f(o)
@@ -173,8 +180,8 @@ func NewFortnoxClient(optionsFuncs ...OptionsFunc) *Client {
 	}
 }
 
-func (c *Client) makeUrl(section string) (*url.URL, error) {
-	u, err := url.Parse(c.clientOptions.BaseUrl)
+func (c *Client) makeURL(section string) (*url.URL, error) {
+	u, err := url.Parse(c.clientOptions.BaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -185,11 +192,13 @@ func (c *Client) makeUrl(section string) (*url.URL, error) {
 	return u.ResolveReference(u2), nil
 }
 
+// ListOrdersResp Response when listing orders
 type ListOrdersResp struct {
 	Orders          []*OrderShort    `json:"Orders"`
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
+// ListOrders or search orders
 func (c *Client) ListOrders(ctx context.Context, p *QueryParams) (*ListOrdersResp, error) {
 
 	resp := &ListOrdersResp{}
@@ -201,6 +210,7 @@ func (c *Client) ListOrders(ctx context.Context, p *QueryParams) (*ListOrdersRes
 	return resp, nil
 }
 
+// GetOrder gets one order by id
 func (c *Client) GetOrder(ctx context.Context, id string) (*OrderFull, error) {
 
 	resp := &struct {
@@ -214,6 +224,7 @@ func (c *Client) GetOrder(ctx context.Context, id string) (*OrderFull, error) {
 	return resp.Order, nil
 }
 
+// CreateOrder creates an order
 func (c *Client) CreateOrder(ctx context.Context, order *CreateOrder) (*OrderFull, error) {
 	orderResp := &struct {
 		Order *OrderFull `json:"Order"`
@@ -230,6 +241,7 @@ func (c *Client) CreateOrder(ctx context.Context, order *CreateOrder) (*OrderFul
 	return orderResp.Order, nil
 }
 
+// UpdateOrder updates an order
 func (c *Client) UpdateOrder(ctx context.Context, id string, fields map[string]interface{}) (*OrderFull, error) {
 
 	resp := &struct {
@@ -255,11 +267,13 @@ func (c *Client) UpdateOrder(ctx context.Context, id string, fields map[string]i
     }
 */
 
+// ListInvoicesResp is the response for listing invoices
 type ListInvoicesResp struct {
 	Invoices        []*InvoiceShort  `json:"Invoices"`
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
+// ListInvoices lists invoices
 func (c *Client) ListInvoices(ctx context.Context, p *QueryParams) (*ListInvoicesResp, error) {
 	resp := &ListInvoicesResp{}
 
@@ -270,6 +284,7 @@ func (c *Client) ListInvoices(ctx context.Context, p *QueryParams) (*ListInvoice
 	return resp, nil
 }
 
+// GetInvoice gets one invoice
 func (c *Client) GetInvoice(ctx context.Context, id string) (*InvoiceFull, error) {
 
 	resp := &struct {
@@ -283,6 +298,7 @@ func (c *Client) GetInvoice(ctx context.Context, id string) (*InvoiceFull, error
 	return resp.Invoice, nil
 }
 
+// GetCompanySettings fetches company info
 func (c *Client) GetCompanySettings(ctx context.Context) (*CompanySettings, error) {
 
 	resp := &struct {
@@ -296,11 +312,13 @@ func (c *Client) GetCompanySettings(ctx context.Context) (*CompanySettings, erro
 	return resp.CompanySettings, nil
 }
 
+// ListArticlesResp is the response for ListArticles
 type ListArticlesResp struct {
 	Articles        []*Article       `json:"Articles"`
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
+// ListArticles lists or searches articles
 func (c *Client) ListArticles(ctx context.Context, p *QueryParams) (*ListArticlesResp, error) {
 	resp := &ListArticlesResp{}
 
@@ -311,6 +329,7 @@ func (c *Client) ListArticles(ctx context.Context, p *QueryParams) (*ListArticle
 	return resp, nil
 }
 
+// GetArticle gets one article
 func (c *Client) GetArticle(ctx context.Context, id string) (*Article, error) {
 
 	resp := &struct {
@@ -324,6 +343,7 @@ func (c *Client) GetArticle(ctx context.Context, id string) (*Article, error) {
 	return resp.Article, nil
 }
 
+// ListLabels lists labels
 func (c *Client) ListLabels(ctx context.Context) ([]*Label, error) {
 	resp := &struct {
 		Labels []*Label `json:"Labels"`
@@ -336,12 +356,14 @@ func (c *Client) ListLabels(ctx context.Context) ([]*Label, error) {
 	return resp.Labels, nil
 }
 
+// CreateLabelReq is the request used for creating labels
 type CreateLabelReq struct {
 	Label struct {
 		Description string `json:"Description"`
 	} `json:"Label"`
 }
 
+// CreateLabel creates a label
 func (c *Client) CreateLabel(ctx context.Context, name string) (*Label, error) {
 
 	resp := &struct {
@@ -358,7 +380,7 @@ func (c *Client) CreateLabel(ctx context.Context, name string) (*Label, error) {
 }
 
 func (c *Client) request(ctx context.Context, method, resource string, body interface{}, p *QueryParams, result interface{}) error {
-	u, err := c.makeUrl(resource)
+	u, err := c.makeURL(resource)
 	if err != nil {
 		return err
 	}
@@ -375,11 +397,11 @@ func (c *Client) request(ctx context.Context, method, resource string, body inte
 	bodyBuffer := new(bytes.Buffer)
 	json.NewEncoder(bodyBuffer).Encode(body)
 
-	return request(c.clientOptions.HttpClient, ctx, headers, method, u.String(), bodyBuffer, p, result)
+	return request(ctx, c.clientOptions.HTTPClient, headers, method, u.String(), bodyBuffer, p, result)
 
 }
 
-func request(client *http.Client, ctx context.Context, headers map[string]string, method, url string, data io.Reader, p *QueryParams, result interface{}) error {
+func request(ctx context.Context, client *http.Client, headers map[string]string, method, url string, data io.Reader, p *QueryParams, result interface{}) error {
 
 	req, err := http.NewRequest(method, url, data)
 	if err != nil {
@@ -424,7 +446,7 @@ func request(client *http.Client, ctx context.Context, headers map[string]string
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return errors.Wrap(err, "failed to decode json")
 		}
-		return errors.New(fmt.Sprintf("%d: %s", errMsg.ErrorInformation.Code, errMsg.ErrorInformation.Message))
+		return fmt.Errorf("%d: %s", errMsg.ErrorInformation.Code, errMsg.ErrorInformation.Message)
 	}
 
 }

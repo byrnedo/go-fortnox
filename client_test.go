@@ -32,11 +32,11 @@ func TestGetAccessToken(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterResponder("GET", API_URL,
+	httpmock.RegisterResponder("GET", DefaultURL,
 		httpmock.NewStringResponder(200, `{"Authorization": {"AccessToken": "test"}}`))
 
 	token, err := GetAccessToken(context.Background(), "test", secret, func(opts *AccessTokenOptions) {
-		httpmock.ActivateNonDefault(opts.HttpClient)
+		httpmock.ActivateNonDefault(opts.HTTPClient)
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -50,7 +50,7 @@ func TestNewFortnoxClient(t *testing.T) {
 
 	c := NewFortnoxClient(WithAuthOpts("token", "secret"), WithURLOpts("url"))
 
-	if c.clientOptions.BaseUrl != "url" {
+	if c.clientOptions.BaseURL != "url" {
 		t.Fatal("Incorrect url")
 	}
 
