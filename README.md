@@ -16,7 +16,7 @@ if err != nil {
 ### Package Function
 
 ```go
-// Get an access toke from and authorization code 
+// Get an access token from an authorization code 
 GetAccessToken(authorizationCode string, clientSecret string, optsFuncs ...func(*AccessTokenOptions)) (string, error)
 
 // Create new client
