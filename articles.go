@@ -43,6 +43,7 @@ type Article struct {
 	Width                     int      `json:"Width"`
 }
 
+// CreateArticle data type
 type CreateArticle struct {
 	ArticleNumber             *string   `json:"ArticleNumber,omitempty"`
 	Active                    *bool     `json:"Active,omitempty"`
@@ -131,7 +132,7 @@ func (c *Client) CreateArticle(ctx context.Context, article *CreateArticle) (*Ar
 }
 
 // UpdateArticle updates an order
-func (c *Client) UpdatesArticle(ctx context.Context, id string, article *UpdateArticle) (*Article, error) {
+func (c *Client) UpdateArticle(ctx context.Context, id string, article *UpdateArticle) (*Article, error) {
 	resp := &ArticleResp{}
 	err := c.request(ctx, "POST", "articles/" + id, &struct {
 		Article *UpdateArticle `json:"Article"`
