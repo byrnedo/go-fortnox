@@ -13,7 +13,9 @@ import (
 )
 
 const (
-	mimeJSON = "application/json"
+	mimeJSON  = "application/json"
+	userAgent = "go-fortnox/client.go (godoc.org/github.com/byrnedo/go-fortnox)"
+
 	// TimeFormat is the format that fortnox expects
 	TimeFormat = "2006-01-02 15:04"
 	// DateFormat that fortnox expects
@@ -24,13 +26,11 @@ const (
 )
 
 var (
-	// ErrUnauthorized is the error returned in the case of 401
-	ErrUnauthorized = errors.New("Unauthorized")
-
 	defaultTimeout = time.Duration(20 * time.Second)
 	defaultHeaders = map[string]string{
 		"Accept":       mimeJSON,
 		"Content-Type": mimeJSON,
+		"User-Agent":   userAgent,
 	}
 )
 

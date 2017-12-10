@@ -3,11 +3,10 @@ package fortnox
 import (
 	"context"
 	"fmt"
-	pth "github.com/byrnedo/apibase/helpers/pointerhelp"
-	"github.com/byrnedo/apibase/helpers/stringhelp"
 	"gopkg.in/jarcoal/httpmock.v1"
 	"os"
 	"testing"
+	"math/rand"
 )
 
 var (
@@ -186,11 +185,21 @@ func TestFortnoxClient_GetLabels(t *testing.T) {
 
 }
 
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
 func TestFortnoxClient_CreateLabel(t *testing.T) {
 
 	c := NewFortnoxClient(addTestOpts()...)
 
-	r, err := c.CreateLabel(context.Background(), "test"+stringhelp.RandString(4))
+	r, err := c.CreateLabel(context.Background(), "test"+RandStringBytes(4))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,12 +210,18 @@ func TestFortnoxClient_CreateLabel(t *testing.T) {
 }
 
 func TestFortnoxClient_CreateOrder(t *testing.T) {
-	c := NewFortnoxClient(addTestOpts()...)
+
+	var (
+		c = NewFortnoxClient(addTestOpts()...)
+		one = "one"
+		desc = "description"
+	)
 
 	order := &CreateOrder{
-		CustomerNumber: pth.StringPtr("1"),
+		CustomerNumber: &one,
 		OrderRows: []*CreateOrderRow{
-			{Description: pth.StringPtr("Desc Text")},
+			{Description: &desc,
+			},
 		},
 	}
 	r, err := c.CreateOrder(context.Background(), order)
