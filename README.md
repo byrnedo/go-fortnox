@@ -9,7 +9,7 @@ import (
 	"github.com/byrnedo/go-fortnox"
 )
 
-client := fortnox.NewFortnoxClient(fortnox.WithAuthOpts("token", "secret"))
+client := fortnox.NewClient(fortnox.WithAuthOpts("token", "secret"))
 
 order, err := client.GetOrder(docNumber)
 if err != nil {
