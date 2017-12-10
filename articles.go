@@ -5,6 +5,7 @@ import "context"
 // Article data type
 type Article struct {
 	URL                       string   `json:"@url"`
+	Active                    bool     `json:"Active"`
 	ArticleNumber             string   `json:"ArticleNumber"`
 	Bulky                     bool     `json:"Bulky"`
 	ConstructionAccount       int      `json:"ConstructionAccount"`
@@ -42,6 +43,40 @@ type Article struct {
 	Width                     int      `json:"Width"`
 }
 
+type CreateArticle struct {
+	ArticleNumber             *string   `json:"ArticleNumber,omitempty"`
+	Active                    *bool     `json:"Active,omitempty"`
+	Bulky                     *bool     `json:"Bulky,omitempty"`
+	ConstructionAccount       *int      `json:"ConstructionAccount,omitempty"`
+	Depth                     *int      `json:"Depth,omitempty"`
+	Description               *string   `json:"Description,omitempty"`
+	EAN                       *string   `json:"EAN,omitempty"`
+	EUAccount                 *int      `json:"EUAccount,omitempty"`
+	EUVATAccount              *int      `json:"EUVATAccount,omitempty"`
+	Expired                   *bool     `json:"Expired,omitempty"`
+	ExportAccount             *int      `json:"ExportAccount,omitempty"`
+	Height                    *int      `json:"Height,omitempty"`
+	Housework                 *bool     `json:"Housework,omitempty"`
+	HouseworkType             *string   `json:"HouseworkType,omitempty"`
+	Manufacturer              *string   `json:"Manufacturer,omitempty"`
+	ManufacturerArticleNumber *string   `json:"ManufacturerArticleNumber,omitempty"`
+	Note                      *string   `json:"Note,omitempty"`
+	PurchaseAccount           *int      `json:"PurchaseAccount,omitempty"`
+	PurchasePrice             *Floatish `json:"PurchasePrice,omitempty"`
+	QuantityInStock           *Floatish `json:"QuantityInStock,omitempty"`
+	SalesAccount              *int      `json:"SalesAccount,omitempty"`
+	StockGoods                *bool     `json:"StockGoods,omitempty"`
+	StockPlace                *string   `json:"StockPlace,omitempty"`
+	StockWarning              *Floatish `json:"StockWarning,omitempty"`
+	SupplierNumber            *string   `json:"SupplierNumber,omitempty"`
+	Type                      *string   `json:"Type,omitempty"`
+	Unit                      *string   `json:"Unit,omitempty"`
+	VAT                       *Floatish `json:"VAT,omitempty"`
+	WebshopArticle            *bool     `json:"WebshopArticle,omitempty"`
+	Weight                    *int      `json:"Weight,omitempty"`
+	Width                     *int      `json:"Width,omitempty"`
+}
+
 // ListArticlesResp is the response for ListArticles
 type ListArticlesResp struct {
 	Articles        []*Article       `json:"Articles"`
@@ -70,6 +105,21 @@ func (c *Client) GetArticle(ctx context.Context, id string) (*Article, error) {
 	resp := &ArticleResp{}
 
 	err := c.request(ctx, "GET", "articles/"+id, nil, nil, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp.Article, nil
+}
+
+// CreateArticle creates an order
+func (c *Client) CreateArticle(ctx context.Context, article *CreateArticle) (*Article, error) {
+	resp := &ArticleResp{}
+	err := c.request(ctx, "POST", "articles/", &struct {
+		Article *CreateArticle `json:"Article"`
+	}{
+		Article: article,
+	}, nil, resp)
 	if err != nil {
 		return nil, err
 	}

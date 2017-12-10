@@ -206,25 +206,25 @@ func (c *Client) ListOrders(ctx context.Context, p *QueryParams) (*ListOrdersRes
 	return resp, nil
 }
 
+type OrderResp struct {
+	Order OrderFull `json:"Order"`
+}
+
 // GetOrder gets one order by id
 func (c *Client) GetOrder(ctx context.Context, id string) (*OrderFull, error) {
 
-	resp := &struct {
-		Order *OrderFull `json:"Order"`
-	}{}
+	resp := &OrderResp{}
 	err := c.request(ctx, "GET", "orders/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.Order, nil
+	return &resp.Order, nil
 }
 
 // CreateOrder creates an order
 func (c *Client) CreateOrder(ctx context.Context, order *CreateOrder) (*OrderFull, error) {
-	orderResp := &struct {
-		Order *OrderFull `json:"Order"`
-	}{}
+	orderResp := &OrderResp{}
 	err := c.request(ctx, "POST", "orders/", &struct {
 		Order *CreateOrder `json:"Order"`
 	}{
@@ -234,15 +234,13 @@ func (c *Client) CreateOrder(ctx context.Context, order *CreateOrder) (*OrderFul
 		return nil, err
 	}
 
-	return orderResp.Order, nil
+	return &orderResp.Order, nil
 }
 
 // UpdateOrder updates an order
 func (c *Client) UpdateOrder(ctx context.Context, id string, order *UpdateOrder) (*OrderFull, error) {
 
-	resp := &struct {
-		Order *OrderFull `json:"Order"`
-	}{}
+	resp := &OrderResp{}
 	err := c.request(ctx, "PUT", "orders/"+id, &struct {
 		Order *UpdateOrder `json:"Order"`
 	}{
@@ -252,5 +250,5 @@ func (c *Client) UpdateOrder(ctx context.Context, id string, order *UpdateOrder)
 		return nil, err
 	}
 
-	return resp.Order, nil
+	return &resp.Order, nil
 }
