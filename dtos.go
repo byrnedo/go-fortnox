@@ -3,9 +3,9 @@ package fortnox
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 )
 
+// Floatish type to allow unmarshalling from either string or float
 type Floatish struct {
 	Value float64
 }
@@ -25,89 +25,83 @@ func unmarshalIsh(data []byte, receiver interface{}) error {
 	return json.Unmarshal(data, receiver)
 }
 
+// UnmarshalJSON to allow unmarshalling from either string or float
 func (f *Floatish) UnmarshalJSON(data []byte) error {
 	return unmarshalIsh(data, &f.Value)
 }
 
+// MarshalJSON to allow marshalling of underlying float
 func (f *Floatish) MarshalJSON() ([]byte, error) {
 	return json.Marshal(f.Value)
 }
 
+// Floatish type to allow unmarshalling from either string or int
 type Intish struct {
 	Value int
 }
 
+// UnmarshalJSON to allow unmarshalling from either string or int
 func (f *Intish) UnmarshalJSON(data []byte) error {
 	return unmarshalIsh(data, &f.Value)
 }
 
+// MarshalJSON to allow marshalling of underlying int
+func (f *Intish) MarshalJSON() ([]byte, error) {
+	return json.Marshal(f.Value)
+}
+
+// Date simple fortnox date holder
 type Date struct {
 	Year  int
 	Month int
 	Date  int
 }
 
+// String representation of fnox date
 func (d *Date) String() string {
 	return fmt.Sprintf("%04d-%02d-%02d", d.Year, d.Month, d.Date)
 }
 
+// UnmarshalJSON of fnox date
 func (d *Date) UnmarshalJSON(data []byte) error {
 
 	var v string
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
+
 	if len(v) != 10 {
 		return nil
 	}
 
-	y, err := strconv.Atoi(v[0:4])
-	if err != nil {
+	if _, err := fmt.Sscanf(v,"%d-%d-%d", &d.Year, &d.Month, &d.Date); err != nil {
 		return err
 	}
-	d.Year = y
-
-	m, err := strconv.Atoi(v[5:7])
-	if err != nil {
-
-		return err
-	}
-	d.Month = m
-
-	da, err := strconv.Atoi(v[8:])
-	if err != nil {
-		return err
-	}
-	d.Date = da
 
 	return nil
 }
 
-/**
-"MetaInformation": {
-       "@CurrentPage": 1,
-       "@TotalPages": 1,
-       "@TotalResources": 32
-   }
-*/
-// MetaInformation
+// MetaInformation for responses
 type MetaInformation struct {
 	CurrentPage    int `json:"@CurrentPage"`
 	TotalPages     int `json:"@TotalPages"`
 	TotalResources int `json:"@TotalResources"`
 }
 
+// ErrorMessage response type
 type ErrorMessage struct {
 	Error   int    `json:"Error"`
 	Message string `json:"Message"`
 	Code    int    `json:"Code"`
 }
 
+// Label data type
 type Label struct {
 	ID          int    `json:"Id"`
 	Description string `json:"Description,omitempty"`
 }
 
+// CompanySettings data type
 type CompanySettings struct {
 	Address            string `json:"Address"`
 	BG                 string `json:"BG"`
@@ -139,6 +133,8 @@ type CompanySettings struct {
 	WWW                string `json:"WWW"`
 	ZipCode            string `json:"ZipCode"`
 }
+
+// EmailInformation data type
 type EmailInformation struct {
 	EmailAddressBCC  string `json:"EmailAddressBCC"`
 	EmailAddressCC   string `json:"EmailAddressCC"`
@@ -148,6 +144,7 @@ type EmailInformation struct {
 	EmailSubject     string `json:"EmailSubject"`
 }
 
+// OrderShort data type
 type OrderShort struct {
 	URL                       string  `json:"@url"`
 	Cancelled                 bool    `json:"Cancelled"`
@@ -163,6 +160,7 @@ type OrderShort struct {
 	Total                     float64 `json:"Total"`
 }
 
+// OrderRow data type
 type OrderRow struct {
 	AccountNumber          int      `json:"AccountNumber"`
 	ArticleNumber          string   `json:"ArticleNumber"`
@@ -184,8 +182,10 @@ type OrderRow struct {
 	VAT                    float64  `json:"VAT"`
 }
 
+// InvoiceRow data type
 type InvoiceRow OrderRow
 
+// CreateOrderRow payload for order rows when creating new order. Pointers since most fields are not required.
 type CreateOrderRow struct {
 	AccountNumber          *int64   `json:"AccountNumber"`
 	ArticleNumber          *string  `json:"ArticleNumber,omitempty"`
@@ -204,6 +204,7 @@ type CreateOrderRow struct {
 	VAT                    *float64 `json:"VAT,omitempty"`
 }
 
+// CreateOrder payload for creating orders
 type CreateOrder struct {
 	AdministrationFee         *float64          `json:"AdministrationFee,omitempty"`
 	Address1                  *string           `json:"Address1,omitempty"`
@@ -252,8 +253,10 @@ type CreateOrder struct {
 }
 
 
+// UpdateOrder payload for updating orders
 type UpdateOrder CreateOrder
 
+// OrderFull data type
 type OrderFull struct {
 	URL                       string           `json:"@url"`
 	URLTaxReductionList       string           `json:"@urlTaxReductionList"`
@@ -321,6 +324,7 @@ type OrderFull struct {
 	ZipCode                   string           `json:"ZipCode"`
 }
 
+// InvoiceShort data type
 type InvoiceShort struct {
 	URL                       string   `json:"@url"`
 	Balance                   float64  `json:"Balance"`
@@ -345,6 +349,7 @@ type InvoiceShort struct {
 	WayOfDelivery             string   `json:"WayOfDelivery"`
 }
 
+// EDIInformation data type
 type EDIInformation struct {
 	EDIGlobalLocationNumber         string `json:"EDIGlobalLocationNumber"`
 	EDIGlobalLocationNumberDelivery string `json:"EDIGlobalLocationNumberDelivery"`
@@ -354,6 +359,7 @@ type EDIInformation struct {
 	EDIYourElectronicReference      string `json:"EDIYourElectronicReference"`
 }
 
+// InvoiceFull data type
 type InvoiceFull struct {
 	URL                       string           `json:"@url"`
 	URLTaxReductionList       string           `json:"@urlTaxReductionList"`
@@ -440,6 +446,7 @@ type InvoiceFull struct {
 	ZipCode                   string           `json:"ZipCode"`
 }
 
+// Article data type
 type Article struct {
 	URL                       string   `json:"@url"`
 	ArticleNumber             string   `json:"ArticleNumber"`

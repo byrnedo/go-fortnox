@@ -1,0 +1,51 @@
+package fortnox
+
+import (
+	"testing"
+	"encoding/json"
+)
+
+func TestFloatish_UnmarshalJSON(t *testing.T) {
+
+	testS := struct {
+		FloatFieldFromStr Floatish
+		FloatFieldFromFloat Floatish
+	}{}
+
+	testPayload := `{"FloatFieldFromStr": "8.8888", "FloatFieldFromFloat": 9.9999}`
+
+	if err := json.Unmarshal([]byte(testPayload), &testS); err != nil {
+		t.Fatal(err)
+	}
+
+	if testS.FloatFieldFromFloat.Value != 9.9999 {
+		t.Fatalf("unexpected value %.04f", testS.FloatFieldFromFloat.Value)
+	}
+	if testS.FloatFieldFromStr.Value != 8.8888 {
+		t.Fatalf("unexpected value %.04f", testS.FloatFieldFromStr.Value)
+	}
+}
+
+func TestDate_UnmarshalJSON(t *testing.T) {
+
+	testS := struct {
+		FnoxDate Date
+	}{}
+
+	testPayload := `{"FnoxDate": "1988-03-18"}`
+
+	if err := json.Unmarshal([]byte(testPayload), &testS); err != nil {
+		t.Fatal(err)
+	}
+
+	if testS.FnoxDate.Year != 1988 {
+		t.Fatalf("unexpected value %d", testS.FnoxDate.Year)
+	}
+	if testS.FnoxDate.Month != 3 {
+		t.Fatalf("unexpected value %d", testS.FnoxDate.Month)
+	}
+	if testS.FnoxDate.Date != 18 {
+		t.Fatalf("unexpected value %d", testS.FnoxDate.Date)
+	}
+
+}

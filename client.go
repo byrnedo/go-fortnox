@@ -276,8 +276,7 @@ func (c *Client) ListInvoices(ctx context.Context, p *QueryParams) (*ListInvoice
 	return resp, nil
 }
 
-// InvoiceResp
-// Response for single invoice
+// InvoiceResp Response for single invoice
 type InvoiceResp struct {
 	Invoice InvoiceFull `json:"Invoice"`
 }
@@ -295,8 +294,7 @@ func (c *Client) GetInvoice(ctx context.Context, id string) (*InvoiceFull, error
 	return &resp.Invoice, nil
 }
 
-// CompanySettingsResp
-// Response for company settings
+// CompanySettingsResp Response for company settings
 type CompanySettingsResp struct {
 	CompanySettings CompanySettings `json:"CompanySettings"`
 }
@@ -350,8 +348,7 @@ func (c *Client) GetArticle(ctx context.Context, id string) (*Article, error) {
 	return &resp.Article, nil
 }
 
-// ListLabelsResp
-// Response for multiple labels
+// ListLabelsResp Response for multiple labels
 type ListLabelsResp struct {
 	Labels []*Label `json:"Labels"`
 }
@@ -374,8 +371,7 @@ type CreateLabelReq struct {
 	} `json:"Label"`
 }
 
-// LabelResp
-// Response for single label
+// LabelResp Response for single label
 type LabelResp struct {
 	Label Label `json:"Label"`
 }
