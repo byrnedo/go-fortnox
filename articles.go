@@ -77,6 +77,9 @@ type CreateArticle struct {
 	Width                     *int      `json:"Width,omitempty"`
 }
 
+// UpdateArticle data type
+type UpdateArticle CreateArticle
+
 // ListArticlesResp is the response for ListArticles
 type ListArticlesResp struct {
 	Articles        []*Article       `json:"Articles"`
@@ -117,6 +120,21 @@ func (c *Client) CreateArticle(ctx context.Context, article *CreateArticle) (*Ar
 	resp := &ArticleResp{}
 	err := c.request(ctx, "POST", "articles/", &struct {
 		Article *CreateArticle `json:"Article"`
+	}{
+		Article: article,
+	}, nil, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp.Article, nil
+}
+
+// UpdateArticle updates an order
+func (c *Client) UpdatesArticle(ctx context.Context, id string, article *UpdateArticle) (*Article, error) {
+	resp := &ArticleResp{}
+	err := c.request(ctx, "POST", "articles/" + id, &struct {
+		Article *UpdateArticle `json:"Article"`
 	}{
 		Article: article,
 	}, nil, resp)
