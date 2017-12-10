@@ -1,14 +1,14 @@
 package fortnox
 
 import (
-	"testing"
 	"encoding/json"
+	"testing"
 )
 
 func TestFloatish_UnmarshalJSON(t *testing.T) {
 
 	testS := struct {
-		FloatFieldFromStr Floatish
+		FloatFieldFromStr   Floatish
 		FloatFieldFromFloat Floatish
 	}{}
 

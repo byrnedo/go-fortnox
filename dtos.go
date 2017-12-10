@@ -35,7 +35,7 @@ func (f *Floatish) MarshalJSON() ([]byte, error) {
 	return json.Marshal(f.Value)
 }
 
-// Floatish type to allow unmarshalling from either string or int
+// Intish type to allow unmarshalling from either string or int
 type Intish struct {
 	Value int
 }
@@ -74,7 +74,7 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	if _, err := fmt.Sscanf(v,"%d-%d-%d", &d.Year, &d.Month, &d.Date); err != nil {
+	if _, err := fmt.Sscanf(v, "%d-%d-%d", &d.Year, &d.Month, &d.Date); err != nil {
 		return err
 	}
 
@@ -251,7 +251,6 @@ type CreateOrder struct {
 	YourOrderNumber           *string           `json:"YourOrderNumber,omitempty"`
 	ZipCode                   *string           `json:"ZipCode,omitempty"`
 }
-
 
 // UpdateOrder payload for updating orders
 type UpdateOrder CreateOrder
@@ -485,4 +484,3 @@ type Article struct {
 	Weight                    int      `json:"Weight"`
 	Width                     int      `json:"Width"`
 }
-

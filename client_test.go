@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"gopkg.in/jarcoal/httpmock.v1"
+	"math/rand"
 	"os"
 	"testing"
-	"math/rand"
 )
 
 var (
@@ -212,16 +212,15 @@ func TestFortnoxClient_CreateLabel(t *testing.T) {
 func TestFortnoxClient_CreateOrder(t *testing.T) {
 
 	var (
-		c = NewFortnoxClient(addTestOpts()...)
-		one = "one"
+		c    = NewFortnoxClient(addTestOpts()...)
+		one  = "one"
 		desc = "description"
 	)
 
 	order := &CreateOrder{
 		CustomerNumber: &one,
 		OrderRows: []*CreateOrderRow{
-			{Description: &desc,
-			},
+			{Description: &desc},
 		},
 	}
 	r, err := c.CreateOrder(context.Background(), order)

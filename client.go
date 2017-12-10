@@ -329,8 +329,7 @@ func (c *Client) ListArticles(ctx context.Context, p *QueryParams) (*ListArticle
 	return resp, nil
 }
 
-// ArticleResp
-// Response for single article
+// ArticleResp Response for single article
 type ArticleResp struct {
 	Article Article `json:"Article"`
 }
@@ -413,16 +412,19 @@ func (c *Client) request(ctx context.Context, method, resource string, body inte
 
 }
 
+// ErrorResp error response from fnox
 type ErrorResp struct {
 	ErrorInformation ErrorMessage
 }
 
+// FnoxError Our internal remote error holder
 type FnoxError struct {
 	HttpStatus int
 	Code       int
 	Message    string
 }
 
+// Error pretty print error
 func (f FnoxError) Error() string {
 	return fmt.Sprintf("%d - %s", f.Code, f.Message)
 }
