@@ -47,7 +47,7 @@ func TestGetAccessToken(t *testing.T) {
 
 func TestNewFortnoxClient(t *testing.T) {
 
-	c := NewFortnoxClient(WithAuthOpts("token", "secret"), WithURLOpts("url"))
+	c := NewClient(WithAuthOpts("token", "secret"), WithURLOpts("url"))
 
 	if c.clientOptions.BaseURL != "url" {
 		t.Fatal("Incorrect url")
@@ -67,7 +67,7 @@ func TestNewFortnoxClient(t *testing.T) {
 }
 
 func TestGetOrders(t *testing.T) {
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 
 	r, err := c.ListOrders(context.Background(), nil)
 	if err != nil {
@@ -84,7 +84,7 @@ func TestGetOrders(t *testing.T) {
 }
 
 func TestGetOrder(t *testing.T) {
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 	for i := 1; i < 10; i++ {
 		_, err := c.GetOrder(context.Background(), fmt.Sprintf("%d", i))
 		if err != nil {
@@ -95,7 +95,7 @@ func TestGetOrder(t *testing.T) {
 }
 
 func TestGetInvoices(t *testing.T) {
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 
 	r, err := c.ListInvoices(context.Background(), nil)
 	if err != nil {
@@ -112,7 +112,7 @@ func TestGetInvoices(t *testing.T) {
 }
 
 func TestGetInvoice(t *testing.T) {
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 	for i := 1; i < 10; i++ {
 		r, err := c.GetInvoice(context.Background(), fmt.Sprintf("%d", i))
 		if err != nil {
@@ -126,7 +126,7 @@ func TestGetInvoice(t *testing.T) {
 }
 
 func TestFortnoxClient_GetCompanySettings(t *testing.T) {
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 	r, err := c.GetCompanySettings(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -140,7 +140,7 @@ func TestFortnoxClient_GetCompanySettings(t *testing.T) {
 
 func TestFortnoxClient_GetArticles(t *testing.T) {
 
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 
 	r, err := c.ListArticles(context.Background(), nil)
 	if err != nil {
@@ -158,7 +158,7 @@ func TestFortnoxClient_GetArticles(t *testing.T) {
 
 func TestFortnoxClient_GetArticle(t *testing.T) {
 
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 
 	r, err := c.GetArticle(context.Background(), "10")
 	if err != nil {
@@ -172,7 +172,7 @@ func TestFortnoxClient_GetArticle(t *testing.T) {
 
 func TestFortnoxClient_GetLabels(t *testing.T) {
 
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 
 	r, err := c.ListLabels(context.Background())
 	if err != nil {
@@ -197,7 +197,7 @@ func RandStringBytes(n int) string {
 
 func TestFortnoxClient_CreateLabel(t *testing.T) {
 
-	c := NewFortnoxClient(addTestOpts()...)
+	c := NewClient(addTestOpts()...)
 
 	r, err := c.CreateLabel(context.Background(), "test"+RandStringBytes(4))
 	if err != nil {
@@ -212,7 +212,7 @@ func TestFortnoxClient_CreateLabel(t *testing.T) {
 func TestFortnoxClient_CreateOrder(t *testing.T) {
 
 	var (
-		c    = NewFortnoxClient(addTestOpts()...)
+		c    = NewClient(addTestOpts()...)
 		one  = "one"
 		desc = "description"
 	)

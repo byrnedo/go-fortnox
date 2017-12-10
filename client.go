@@ -160,8 +160,8 @@ func WithURLOpts(url string) OptionsFunc {
 	}
 }
 
-// NewFortnoxClient creates a new client
-func NewFortnoxClient(optionsFuncs ...OptionsFunc) *Client {
+// NewClient creates a new client
+func NewClient(optionsFuncs ...OptionsFunc) *Client {
 
 	c := &http.Client{Timeout: defaultTimeout}
 
