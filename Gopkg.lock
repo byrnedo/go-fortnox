@@ -3,7 +3,7 @@
 
 [[projects]]
   name = "github.com/byrnedo/apibase"
-  packages = ["helpers/pointerhelp","helpers/stringhelp","utils"]
+  packages = ["helpers/pointerhelp","helpers/stringhelp"]
   revision = "4a91e645f2e085f7ce22b17145a902f05cc0a95f"
   version = "0.2.3"
 
@@ -22,6 +22,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0f59692f7414095d3421407bafb836a9b13936e88510c198833df384e05f4fc1"
+  inputs-digest = "619bb0d9b09cbbd2b288d762047a372740e19f85d55142ee017fefb018eab783"
   solver-name = "gps-cdcl"
   solver-version = 1

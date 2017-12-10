@@ -62,7 +62,7 @@ func GetAccessToken(ctx context.Context, authorizationCode string, clientSecret 
 		} `json:"Authorization"`
 	}{}
 
-	if err := request(ctx, opts.HTTPClient, headers, "GET", opts.BaseURL, nil, nil, result); err != nil {
+	if err := request(ctx, opts.HTTPClient, headers, "GET", opts.BaseURL, nil, result); err != nil {
 		return "", err
 	}
 
@@ -242,15 +242,15 @@ func (c *Client) CreateOrder(ctx context.Context, order *CreateOrder) (*OrderFul
 }
 
 // UpdateOrder updates an order
-func (c *Client) UpdateOrder(ctx context.Context, id string, fields map[string]interface{}) (*OrderFull, error) {
+func (c *Client) UpdateOrder(ctx context.Context, id string, order *UpdateOrder) (*OrderFull, error) {
 
 	resp := &struct {
 		Order *OrderFull `json:"Order"`
 	}{}
 	err := c.request(ctx, "PUT", "orders/"+id, &struct {
-		Order map[string]interface{} `json:"Order"`
+		Order *UpdateOrder `json:"Order"`
 	}{
-		Order: fields,
+		Order: order,
 	}, nil, resp)
 	if err != nil {
 		return nil, err
@@ -258,14 +258,6 @@ func (c *Client) UpdateOrder(ctx context.Context, id string, fields map[string]i
 
 	return resp.Order, nil
 }
-
-/*
- "MetaInformation": {
-        "@CurrentPage": 1,
-        "@TotalPages": 1,
-        "@TotalResources": 32
-    }
-*/
 
 // ListInvoicesResp is the response for listing invoices
 type ListInvoicesResp struct {
@@ -284,32 +276,42 @@ func (c *Client) ListInvoices(ctx context.Context, p *QueryParams) (*ListInvoice
 	return resp, nil
 }
 
+// InvoiceResp
+// Response for single invoice
+type InvoiceResp struct {
+	Invoice InvoiceFull `json:"Invoice"`
+}
+
 // GetInvoice gets one invoice
 func (c *Client) GetInvoice(ctx context.Context, id string) (*InvoiceFull, error) {
 
-	resp := &struct {
-		Invoice *InvoiceFull `json:"Invoice"`
-	}{}
+	resp := &InvoiceResp{}
+
 	err := c.request(ctx, "GET", "invoices/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.Invoice, nil
+	return &resp.Invoice, nil
+}
+
+// CompanySettingsResp
+// Response for company settings
+type CompanySettingsResp struct {
+	CompanySettings CompanySettings `json:"CompanySettings"`
 }
 
 // GetCompanySettings fetches company info
 func (c *Client) GetCompanySettings(ctx context.Context) (*CompanySettings, error) {
 
-	resp := &struct {
-		CompanySettings *CompanySettings `json:"CompanySettings"`
-	}{}
+	resp := &CompanySettingsResp{}
+
 	err := c.request(ctx, "GET", "settings/company", nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.CompanySettings, nil
+	return &resp.CompanySettings, nil
 }
 
 // ListArticlesResp is the response for ListArticles
@@ -329,25 +331,34 @@ func (c *Client) ListArticles(ctx context.Context, p *QueryParams) (*ListArticle
 	return resp, nil
 }
 
+// ArticleResp
+// Response for single article
+type ArticleResp struct {
+	Article Article `json:"Article"`
+}
+
 // GetArticle gets one article
 func (c *Client) GetArticle(ctx context.Context, id string) (*Article, error) {
 
-	resp := &struct {
-		Article *Article `json:"Article"`
-	}{}
+	resp := &ArticleResp{}
+
 	err := c.request(ctx, "GET", "articles/"+id, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.Article, nil
+	return &resp.Article, nil
+}
+
+// ListLabelsResp
+// Response for multiple labels
+type ListLabelsResp struct {
+	Labels []*Label `json:"Labels"`
 }
 
 // ListLabels lists labels
 func (c *Client) ListLabels(ctx context.Context) ([]*Label, error) {
-	resp := &struct {
-		Labels []*Label `json:"Labels"`
-	}{}
+	resp := &ListLabelsResp{}
 
 	err := c.request(ctx, "GET", "labels", nil, nil, resp)
 	if err != nil {
@@ -363,12 +374,17 @@ type CreateLabelReq struct {
 	} `json:"Label"`
 }
 
+// LabelResp
+// Response for single label
+type LabelResp struct {
+	Label Label `json:"Label"`
+}
+
 // CreateLabel creates a label
 func (c *Client) CreateLabel(ctx context.Context, name string) (*Label, error) {
 
-	resp := &struct {
-		Label *Label `json:"Label"`
-	}{}
+	resp := &LabelResp{}
+
 	req := CreateLabelReq{}
 	req.Label.Description = name
 	err := c.request(ctx, "POST", "labels", &req, nil, resp)
@@ -376,7 +392,7 @@ func (c *Client) CreateLabel(ctx context.Context, name string) (*Label, error) {
 		return nil, err
 	}
 
-	return resp.Label, nil
+	return &resp.Label, nil
 }
 
 func (c *Client) request(ctx context.Context, method, resource string, body interface{}, p *QueryParams, result interface{}) error {
@@ -397,11 +413,25 @@ func (c *Client) request(ctx context.Context, method, resource string, body inte
 	bodyBuffer := new(bytes.Buffer)
 	json.NewEncoder(bodyBuffer).Encode(body)
 
-	return request(ctx, c.clientOptions.HTTPClient, headers, method, u.String(), bodyBuffer, p, result)
+	return request(ctx, c.clientOptions.HTTPClient, headers, method, u.String(), bodyBuffer, result)
 
 }
 
-func request(ctx context.Context, client *http.Client, headers map[string]string, method, url string, data io.Reader, p *QueryParams, result interface{}) error {
+type ErrorResp struct {
+	ErrorInformation ErrorMessage
+}
+
+type FnoxError struct {
+	HttpStatus int
+	Code       int
+	Message    string
+}
+
+func (f FnoxError) Error() string {
+	return fmt.Sprintf("%d - %s", f.Code, f.Message)
+}
+
+func request(ctx context.Context, client *http.Client, headers map[string]string, method, url string, data io.Reader, result interface{}) error {
 
 	req, err := http.NewRequest(method, url, data)
 	if err != nil {
@@ -426,8 +456,6 @@ func request(ctx context.Context, client *http.Client, headers map[string]string
 	defer resp.Body.Close()
 
 	switch resp.StatusCode {
-	case 401:
-		return ErrUnauthorized
 	case 200, 201:
 
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -437,16 +465,11 @@ func request(ctx context.Context, client *http.Client, headers map[string]string
 		return nil
 
 	default:
-
-		errMsg := &struct {
-			ErrorInformation *ErrorMessage
-		}{
-			&ErrorMessage{},
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		errMsg := &ErrorResp{}
+		if err := json.NewDecoder(resp.Body).Decode(&errMsg); err != nil {
 			return errors.Wrap(err, "failed to decode json")
 		}
-		return fmt.Errorf("%d: %s", errMsg.ErrorInformation.Code, errMsg.ErrorInformation.Message)
+		return FnoxError{HttpStatus: resp.StatusCode, Code: errMsg.ErrorInformation.Code, Message: errMsg.ErrorInformation.Message}
 	}
 
 }

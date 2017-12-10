@@ -251,6 +251,9 @@ type CreateOrder struct {
 	ZipCode                   *string           `json:"ZipCode,omitempty"`
 }
 
+
+type UpdateOrder CreateOrder
+
 type OrderFull struct {
 	URL                       string           `json:"@url"`
 	URLTaxReductionList       string           `json:"@urlTaxReductionList"`
@@ -475,3 +478,4 @@ type Article struct {
 	Weight                    int      `json:"Weight"`
 	Width                     int      `json:"Width"`
 }
+
