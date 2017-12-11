@@ -1,6 +1,9 @@
 package fortnox
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 // InvoiceRow data type
 type InvoiceRow OrderRow
@@ -16,7 +19,7 @@ type InvoiceShort struct {
 	CurrencyUnit              float64  `json:"CurrencyUnit"`
 	CustomerName              string   `json:"CustomerName"`
 	CustomerNumber            string   `json:"CustomerNumber"`
-	DocumentNumber            string   `json:"DocumentNumber"`
+	DocumentNumber            Intish   `json:"DocumentNumber"`
 	DueDate                   Date     `json:"DueDate"`
 	ExternalInvoiceReference1 string   `json:"ExternalInvoiceReference1"`
 	ExternalInvoiceReference2 string   `json:"ExternalInvoiceReference2"`
@@ -73,7 +76,7 @@ type InvoiceFull struct {
 	DeliveryDate              Date             `json:"DeliveryDate"`
 	DeliveryName              string           `json:"DeliveryName"`
 	DeliveryZipCode           string           `json:"DeliveryZipCode"`
-	DocumentNumber            string           `json:"DocumentNumber"`
+	DocumentNumber            Intish           `json:"DocumentNumber"`
 	DueDate                   Date             `json:"DueDate"`
 	EDIInformation            EDIInformation   `json:"EDIInformation"`
 	EUQuarterlyReport         bool             `json:"EUQuarterlyReport"`
@@ -150,11 +153,11 @@ type InvoiceResp struct {
 }
 
 // GetInvoice gets one invoice
-func (c *Client) GetInvoice(ctx context.Context, id string) (*InvoiceFull, error) {
+func (c *Client) GetInvoice(ctx context.Context, id int) (*InvoiceFull, error) {
 
 	resp := &InvoiceResp{}
 
-	err := c.request(ctx, "GET", "invoices/"+id, nil, nil, resp)
+	err := c.request(ctx, "GET", fmt.Sprintf("invoices/%d", id), nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}

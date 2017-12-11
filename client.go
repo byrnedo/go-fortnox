@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+	"strings"
+	"io/ioutil"
 )
 
 const (
@@ -225,9 +227,13 @@ func (c *Client) request(ctx context.Context, method, resource string, body inte
 		"Client-Secret": c.clientOptions.ClientSecret,
 	}
 
+	if strings.ToLower(method) == "delete" {
+		bodyBuffer := http.NoBody
+		return request(ctx, c.clientOptions.HTTPClient, headers, method, u.String(), bodyBuffer, result)
+	}
+
 	bodyBuffer := new(bytes.Buffer)
 	json.NewEncoder(bodyBuffer).Encode(body)
-
 	return request(ctx, c.clientOptions.HTTPClient, headers, method, u.String(), bodyBuffer, result)
 
 }
@@ -271,17 +277,19 @@ func request(ctx context.Context, client *http.Client, headers map[string]string
 		return errors.Wrap(err, "error sending request")
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_, _ = io.CopyN(ioutil.Discard, resp.Body, 64)
+		_ = resp.Body.Close()
+	}()
 
 	switch resp.StatusCode {
 	case 200, 201:
-
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return errors.Wrap(err, "failed to decode json")
 		}
-
 		return nil
-
+	case 204:
+		return nil
 	default:
 		errMsg := &ErrorResp{}
 		if err := json.NewDecoder(resp.Body).Decode(&errMsg); err != nil {

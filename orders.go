@@ -1,6 +1,9 @@
 package fortnox
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 // EmailInformation data type
 type EmailInformation struct {
@@ -91,7 +94,7 @@ type CreateOrder struct {
 	DeliveryDate              *string           `json:"DeliveryDate,omitempty"`
 	DeliveryName              *string           `json:"DeliveryName,omitempty"`
 	DeliveryZipCode           *string           `json:"DeliveryZipCode,omitempty"`
-	DocumentNumber            *string           `json:"DocumentNumber,omitempty"`
+	DocumentNumber            *Intish           `json:"DocumentNumber,omitempty"`
 	EmailInformation          *EmailInformation `json:"EmailInformation,omitempty"`
 	ExternalInvoiceReference1 *string           `json:"ExternalInvoiceReference1,omitempty"`
 	ExternalInvoiceReference2 *string           `json:"ExternalInvoiceReference2,omitempty"`
@@ -149,7 +152,7 @@ type OrderFull struct {
 	DeliveryDate              Date             `json:"DeliveryDate"`
 	DeliveryName              string           `json:"DeliveryName"`
 	DeliveryZipCode           string           `json:"DeliveryZipCode"`
-	DocumentNumber            string           `json:"DocumentNumber"`
+	DocumentNumber            Intish           `json:"DocumentNumber"`
 	EmailInformation          EmailInformation `json:"EmailInformation"`
 	ExternalInvoiceReference1 string           `json:"ExternalInvoiceReference1"`
 	ExternalInvoiceReference2 string           `json:"ExternalInvoiceReference2"`
@@ -211,10 +214,10 @@ type OrderResp struct {
 }
 
 // GetOrder gets one order by id
-func (c *Client) GetOrder(ctx context.Context, id string) (*OrderFull, error) {
+func (c *Client) GetOrder(ctx context.Context, id int) (*OrderFull, error) {
 
 	resp := &OrderResp{}
-	err := c.request(ctx, "GET", "orders/"+id, nil, nil, resp)
+	err := c.request(ctx, "GET", fmt.Sprintf("orders/%d", id), nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -238,10 +241,10 @@ func (c *Client) CreateOrder(ctx context.Context, order *CreateOrder) (*OrderFul
 }
 
 // UpdateOrder updates an order
-func (c *Client) UpdateOrder(ctx context.Context, id string, order *UpdateOrder) (*OrderFull, error) {
+func (c *Client) UpdateOrder(ctx context.Context, id int, order *UpdateOrder) (*OrderFull, error) {
 
 	resp := &OrderResp{}
-	err := c.request(ctx, "PUT", "orders/"+id, &struct {
+	err := c.request(ctx, "PUT", fmt.Sprintf("orders/%d", id), &struct {
 		Order *UpdateOrder `json:"Order"`
 	}{
 		Order: order,

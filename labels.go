@@ -1,6 +1,9 @@
 package fortnox
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 // Label data type
 type Label struct {
@@ -55,19 +58,19 @@ func (c *Client) CreateLabel(ctx context.Context, name string) (*Label, error) {
 type UpdateLabelsReq CreateLabelReq
 
 // UpdateLabel updates a label
-func (c *Client) UpdateLabel(ctx context.Context, id, name string) (*Label, error) {
+func (c *Client) UpdateLabel(ctx context.Context, id int, name string) (*Label, error) {
 
 	resp := &LabelResp{}
 
 	req := CreateLabelReq{}
 	req.Label.Description = name
-	err := c.request(ctx, "PUT", "labels/"+id, &req, nil, resp)
+	err := c.request(ctx, "PUT", fmt.Sprintf("labels/%d", id), &req, nil, resp)
 	if err != nil {
 		return nil, err
 	}
 	return &resp.Label, nil
 }
 
-func (c *Client) DeleteLabel(ctx context.Context, id string) error {
-	return c.deleteResource(ctx, "labels/"+id)
+func (c *Client) DeleteLabel(ctx context.Context, id int) error {
+	return c.deleteResource(ctx, fmt.Sprintf("labels/%d", id))
 }

@@ -2,7 +2,6 @@ package fortnox
 
 import (
 	"context"
-	"fmt"
 	"gopkg.in/jarcoal/httpmock.v1"
 	"math/rand"
 	"os"
@@ -84,7 +83,7 @@ func TestGetOrders(t *testing.T) {
 func TestGetOrder(t *testing.T) {
 	c := NewClient(addTestOpts()...)
 	for i := 1; i < 10; i++ {
-		_, err := c.GetOrder(context.Background(), fmt.Sprintf("%d", i))
+		_, err := c.GetOrder(context.Background(), i)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -112,7 +111,7 @@ func TestGetInvoices(t *testing.T) {
 func TestGetInvoice(t *testing.T) {
 	c := NewClient(addTestOpts()...)
 	for i := 1; i < 10; i++ {
-		r, err := c.GetInvoice(context.Background(), fmt.Sprintf("%d", i))
+		r, err := c.GetInvoice(context.Background(), i)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -123,7 +122,7 @@ func TestGetInvoice(t *testing.T) {
 
 }
 
-func TestFortnoxClient_GetCompanySettings(t *testing.T) {
+func TestClient_GetCompanySettings(t *testing.T) {
 	c := NewClient(addTestOpts()...)
 	r, err := c.GetCompanySettings(context.Background())
 	if err != nil {
@@ -136,7 +135,7 @@ func TestFortnoxClient_GetCompanySettings(t *testing.T) {
 
 }
 
-func TestFortnoxClient_GetArticles(t *testing.T) {
+func TestClient_GetArticles(t *testing.T) {
 
 	c := NewClient(addTestOpts()...)
 
@@ -154,7 +153,7 @@ func TestFortnoxClient_GetArticles(t *testing.T) {
 
 }
 
-func TestFortnoxClient_GetArticle(t *testing.T) {
+func TestClient_GetArticle(t *testing.T) {
 
 	c := NewClient(addTestOpts()...)
 
@@ -168,7 +167,7 @@ func TestFortnoxClient_GetArticle(t *testing.T) {
 
 }
 
-func TestFortnoxClient_GetLabels(t *testing.T) {
+func TestClient_GetLabels(t *testing.T) {
 
 	c := NewClient(addTestOpts()...)
 
@@ -193,7 +192,7 @@ func RandStringBytes(n int) string {
 	return string(b)
 }
 
-func TestFortnoxClient_CreateLabel(t *testing.T) {
+func TestClient_CreateLabel(t *testing.T) {
 
 	c := NewClient(addTestOpts()...)
 	name := "test" + RandStringBytes(4)
@@ -208,7 +207,43 @@ func TestFortnoxClient_CreateLabel(t *testing.T) {
 	}
 }
 
-func TestFortnoxClient_CreateOrder(t *testing.T) {
+
+func TestClient_UpdateLabel(t *testing.T) {
+	c := NewClient(addTestOpts()...)
+	name := "test" + RandStringBytes(4)
+	t.Log(name)
+	r, err := c.CreateLabel(context.Background(), name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r2, err := c.UpdateLabel(context.Background(), r.ID, name +"update")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r2 == nil {
+		t.Fatal("Response was nil")
+	}
+
+}
+
+
+func TestClient_DeleteLabel(t *testing.T) {
+	c := NewClient(addTestOpts()...)
+	name := "test" + RandStringBytes(4)
+	t.Log(name)
+	r, err := c.CreateLabel(context.Background(), name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = c.DeleteLabel(context.Background(), r.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+
+func TestClient_CreateOrder(t *testing.T) {
 
 	var (
 		c    = NewClient(addTestOpts()...)
