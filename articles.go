@@ -104,11 +104,11 @@ type ArticleResp struct {
 }
 
 // GetArticle gets one article
-func (c *Client) GetArticle(ctx context.Context, id string) (*Article, error) {
+func (c *Client) GetArticle(ctx context.Context, artNum string) (*Article, error) {
 
 	resp := &ArticleResp{}
 
-	err := c.request(ctx, "GET", "articles/"+id, nil, nil, resp)
+	err := c.request(ctx, "GET", "articles/"+artNum, nil, nil, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -132,9 +132,9 @@ func (c *Client) CreateArticle(ctx context.Context, article *CreateArticle) (*Ar
 }
 
 // UpdateArticle updates an order
-func (c *Client) UpdateArticle(ctx context.Context, id string, article *UpdateArticle) (*Article, error) {
+func (c *Client) UpdateArticle(ctx context.Context, artNum string, article *UpdateArticle) (*Article, error) {
 	resp := &ArticleResp{}
-	err := c.request(ctx, "POST", "articles/"+id, &struct {
+	err := c.request(ctx, "POST", "articles/"+artNum, &struct {
 		Article *UpdateArticle `json:"Article"`
 	}{
 		Article: article,
@@ -144,4 +144,9 @@ func (c *Client) UpdateArticle(ctx context.Context, id string, article *UpdateAr
 	}
 
 	return &resp.Article, nil
+}
+
+// DeleteArticle deletes one article
+func (c *Client) DeleteArticle(ctx context.Context, artNum string) error {
+	return c.deleteResource(ctx, "articles/"+artNum)
 }

@@ -8,6 +8,9 @@ import (
 // InvoiceRow data type
 type InvoiceRow OrderRow
 
+// A CreateInvoiceRow is used when creating invoices
+type CreateInvoiceRow CreateOrderRow
+
 // InvoiceShort data type
 type InvoiceShort struct {
 	URL                       string   `json:"@url"`
@@ -49,6 +52,7 @@ type InvoiceFull struct {
 	URLTaxReductionList       string           `json:"@urlTaxReductionList"`
 	Address1                  string           `json:"Address1"`
 	Address2                  string           `json:"Address2"`
+	AccountingMethod          string           `json:"AccountingMethod"`
 	AdministrationFee         float64          `json:"AdministrationFee"`
 	AdministrationFeeVAT      float64          `json:"AdministrationFeeVAT"`
 	Balance                   float64          `json:"Balance"`
@@ -63,7 +67,7 @@ type InvoiceFull struct {
 	CostCenter                string           `json:"CostCenter"`
 	Country                   string           `json:"Country"`
 	Credit                    string           `json:"Credit"`
-	CreditInvoiceReference    string           `json:"CreditInvoiceReference"`
+	CreditInvoiceReference    Intish           `json:"CreditInvoiceReference"`
 	Currency                  string           `json:"Currency"`
 	CurrencyRate              Floatish         `json:"CurrencyRate"`
 	CurrencyUnit              float64          `json:"CurrencyUnit"`
@@ -130,6 +134,65 @@ type InvoiceFull struct {
 	ZipCode                   string           `json:"ZipCode"`
 }
 
+// A CreateInvoice is the payload when creating invoices
+type CreateInvoice struct {
+	Address1                  *string             `json:"Address1,omitempty"`
+	Address2                  *string             `json:"Address2,omitempty"`
+	AdministrationFee         *float64            `json:"AdministrationFee,omitempty"`
+	AccountingMethod          *string             `json:"AccountingMethod,omitempty"`
+	City                      *string             `json:"City,omitempty"`
+	Comments                  *string             `json:"Comments,omitempty"`
+	CostCenter                *string             `json:"CostCenter,omitempty"`
+	Country                   *string             `json:"Country,omitempty"`
+	CreditInvoiceReference    *Intish             `json:"CreditInvoiceReference,omitempty"`
+	Currency                  *string             `json:"Currency,omitempty"`
+	CurrencyRate              *Floatish           `json:"CurrencyRate,omitempty"`
+	CurrencyUnit              *float64            `json:"CurrencyUnit,omitempty"`
+	CustomerName              *string             `json:"CustomerName,omitempty"`
+	CustomerNumber            *string             `json:"CustomerNumber,omitempty"`
+	DeliveryAddress1          *string             `json:"DeliveryAddress1,omitempty"`
+	DeliveryAddress2          *string             `json:"DeliveryAddress2,omitempty"`
+	DeliveryCity              *string             `json:"DeliveryCity,omitempty"`
+	DeliveryCountry           *string             `json:"DeliveryCountry,omitempty"`
+	DeliveryDate              *Date               `json:"DeliveryDate,omitempty"`
+	DeliveryName              *string             `json:"DeliveryName,omitempty"`
+	DeliveryZipCode           *string             `json:"DeliveryZipCode,omitempty"`
+	DocumentNumber            *Intish             `json:"DocumentNumber,omitempty"`
+	DueDate                   *Date               `json:"DueDate,omitempty"`
+	EDIInformation            *EDIInformation     `json:"EDIInformation,omitempty"`
+	EUQuarterlyReport         *bool               `json:"EUQuarterlyReport,omitempty"`
+	EmailInformation          *EmailInformation   `json:"EmailInformation,omitempty"`
+	ExternalInvoiceReference1 *string             `json:"ExternalInvoiceReference1,omitempty"`
+	ExternalInvoiceReference2 *string             `json:"ExternalInvoiceReference2,omitempty"`
+	Freight                   *float64            `json:"Freight,omitempty"`
+	InvoiceDate               *Date               `json:"InvoiceDate,omitempty"`
+	InvoiceReference          *Intish             `json:"InvoiceReference,omitempty"`
+	InvoiceRows               []*CreateInvoiceRow `json:"InvoiceRows,omitempty"`
+	InvoiceType               *string             `json:"InvoiceType,omitempty"`
+	Labels                    []*Label            `json:"Labels,omitempty"`
+	Language                  *string             `json:"Language,omitempty"`
+	NotCompleted              *bool               `json:"NotCompleted,omitempty"`
+	OCR                       *string             `json:"OCR,omitempty"`
+	OurReference              *string             `json:"OurReference,omitempty"`
+	PaymentWay                *string             `json:"PaymentWay,omitempty"`
+	Phone1                    *string             `json:"Phone1,omitempty"`
+	Phone2                    *string             `json:"Phone2,omitempty"`
+	PriceList                 *string             `json:"PriceList,omitempty"`
+	PrintTemplate             *string             `json:"PrintTemplate,omitempty"`
+	Project                   *string             `json:"Project,omitempty"`
+	Remarks                   *string             `json:"Remarks,omitempty"`
+	TermsOfDelivery           *string             `json:"TermsOfDelivery,omitempty"`
+	TermsOfPayment            Intish              `json:"TermsOfPayment,omitempty"`
+	VATIncluded               *bool               `json:"VATIncluded,omitempty"`
+	WayOfDelivery             *string             `json:"WayOfDelivery,omitempty"`
+	YourOrderNumber           *string             `json:"YourOrderNumber,omitempty"`
+	YourReference             *string             `json:"YourReference,omitempty"`
+	ZipCode                   *string             `json:"ZipCode,omitempty"`
+}
+
+// An UpdateInvoice is used with the updateInvoice method
+type UpdateInvoice CreateInvoice
+
 // ListInvoicesResp is the response for listing invoices
 type ListInvoicesResp struct {
 	Invoices        []*InvoiceShort  `json:"Invoices"`
@@ -158,6 +221,37 @@ func (c *Client) GetInvoice(ctx context.Context, id int) (*InvoiceFull, error) {
 	resp := &InvoiceResp{}
 
 	err := c.request(ctx, "GET", fmt.Sprintf("invoices/%d", id), nil, nil, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp.Invoice, nil
+}
+
+// CreateInvoice creates an invoice
+func (c *Client) CreateInvoice(ctx context.Context, invoice *CreateInvoice) (*InvoiceFull, error) {
+	resp := &InvoiceResp{}
+	err := c.request(ctx, "POST", "invoices/", &struct {
+		Invoice *CreateInvoice `json:"Invoice"`
+	}{
+		Invoice: invoice,
+	}, nil, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp.Invoice, nil
+}
+
+// UpdateInvoice updates an invoice
+func (c *Client) UpdateInvoice(ctx context.Context, id int, invoice *UpdateInvoice) (*InvoiceFull, error) {
+
+	resp := &InvoiceResp{}
+	err := c.request(ctx, "PUT", fmt.Sprintf("invoices/%d", id), &struct {
+		Invoice *UpdateInvoice `json:"Invoice"`
+	}{
+		Invoice: invoice,
+	}, nil, resp)
 	if err != nil {
 		return nil, err
 	}

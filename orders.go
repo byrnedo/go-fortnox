@@ -209,6 +209,7 @@ func (c *Client) ListOrders(ctx context.Context, p *QueryParams) (*ListOrdersRes
 	return resp, nil
 }
 
+// An OrderResp is the json response for singular order resources
 type OrderResp struct {
 	Order OrderFull `json:"Order"`
 }

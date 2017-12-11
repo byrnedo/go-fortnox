@@ -245,7 +245,7 @@ type ErrorResp struct {
 
 // FnoxError Our internal remote error holder
 type FnoxError struct {
-	HttpStatus int
+	HTTPStatus int
 	Code       int
 	Message    string
 }
@@ -296,7 +296,7 @@ func request(ctx context.Context, client *http.Client, headers map[string]string
 		if err := json.NewDecoder(resp.Body).Decode(&errMsg); err != nil {
 			return errors.Wrap(err, "failed to decode json")
 		}
-		return FnoxError{HttpStatus: resp.StatusCode, Code: errMsg.ErrorInformation.Code, Message: errMsg.ErrorInformation.Message}
+		return FnoxError{HTTPStatus: resp.StatusCode, Code: errMsg.ErrorInformation.Code, Message: errMsg.ErrorInformation.Message}
 	}
 
 }

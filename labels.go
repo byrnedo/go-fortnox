@@ -71,6 +71,7 @@ func (c *Client) UpdateLabel(ctx context.Context, id int, name string) (*Label, 
 	return &resp.Label, nil
 }
 
+// DeleteLabel deletes a label
 func (c *Client) DeleteLabel(ctx context.Context, id int) error {
 	return c.deleteResource(ctx, fmt.Sprintf("labels/%d", id))
 }
