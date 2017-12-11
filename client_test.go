@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"testing"
+	"time"
 )
 
 var (
@@ -15,6 +16,7 @@ var (
 )
 
 func init() {
+	rand.Seed(time.Now().UnixNano())
 	if accessToken == "" {
 		panic("must give FORTNOX_ACCESS_TOKEN env")
 	}
@@ -198,8 +200,9 @@ func RandStringBytes(n int) string {
 func TestFortnoxClient_CreateLabel(t *testing.T) {
 
 	c := NewClient(addTestOpts()...)
-
-	r, err := c.CreateLabel(context.Background(), "test"+RandStringBytes(4))
+	name := "test" + RandStringBytes(4)
+	t.Log(name)
+	r, err := c.CreateLabel(context.Background(), name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -213,8 +216,8 @@ func TestFortnoxClient_CreateOrder(t *testing.T) {
 
 	var (
 		c    = NewClient(addTestOpts()...)
-		one  = "one"
-		desc = "description"
+		one  = "1"
+		desc = "Desc Text"
 	)
 
 	order := &CreateOrder{
