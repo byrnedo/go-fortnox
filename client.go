@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 	"strings"
-	"io/ioutil"
+	"time"
 )
 
 const (
@@ -277,6 +277,7 @@ func request(ctx context.Context, client *http.Client, headers map[string]string
 		return errors.Wrap(err, "error sending request")
 	}
 
+	// trick to drain body
 	defer func() {
 		_, _ = io.CopyN(ioutil.Discard, resp.Body, 64)
 		_ = resp.Body.Close()

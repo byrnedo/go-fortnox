@@ -207,7 +207,6 @@ func TestClient_CreateLabel(t *testing.T) {
 	}
 }
 
-
 func TestClient_UpdateLabel(t *testing.T) {
 	c := NewClient(addTestOpts()...)
 	name := "test" + RandStringBytes(4)
@@ -216,7 +215,7 @@ func TestClient_UpdateLabel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r2, err := c.UpdateLabel(context.Background(), r.ID, name +"update")
+	r2, err := c.UpdateLabel(context.Background(), r.ID, name+"update")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +225,6 @@ func TestClient_UpdateLabel(t *testing.T) {
 	}
 
 }
-
 
 func TestClient_DeleteLabel(t *testing.T) {
 	c := NewClient(addTestOpts()...)
@@ -241,7 +239,6 @@ func TestClient_DeleteLabel(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
 
 func TestClient_CreateOrder(t *testing.T) {
 
@@ -271,12 +268,65 @@ func TestClient_CreateOrder(t *testing.T) {
 	}
 
 	row := r.OrderRows[0]
-	checkTextRow(row, t)
+	checkTextRow(row, desc, t)
 
 }
 
-func checkTextRow(row OrderRow, t *testing.T) {
-	if row.Description != "Desc Text" {
+func TestClient_UpdateOrder(t *testing.T) {
+
+	var (
+		c    = NewClient(addTestOpts()...)
+		one  = "1"
+		desc = "Desc Text"
+		gbg  = "Gothenburg"
+	)
+
+	order := &CreateOrder{
+		CustomerNumber: &one,
+		OrderRows: []*CreateOrderRow{
+			{Description: &desc},
+		},
+	}
+	r, err := c.CreateOrder(context.Background(), order)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r == nil {
+		t.Fatal("Response was nil")
+	}
+
+	desc2 := "Desc Text 2"
+
+	update := &UpdateOrder{
+		CustomerNumber: &one,
+		DeliveryCity:   &gbg,
+		OrderRows: []*CreateOrderRow{
+			{Description: &desc},
+			{Description: &desc2},
+		},
+	}
+
+	r, err = c.UpdateOrder(context.Background(), r.DocumentNumber.Value, update)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r == nil {
+		t.Fatal("Response was nil")
+	}
+
+	if len(r.OrderRows) != 2 {
+		t.Fatalf("unexpected number of order rows, expected 2, got %d", len(r.OrderRows))
+	}
+
+	checkTextRow(r.OrderRows[0], desc, t)
+	checkTextRow(r.OrderRows[1], desc2, t)
+
+}
+
+func checkTextRow(row OrderRow, desc string, t *testing.T) {
+	if row.Description != desc {
 		t.Fatalf("unexpected description: %s", row.Description)
 	}
 	// if no article
