@@ -49,3 +49,13 @@ func TestDate_UnmarshalJSON(t *testing.T) {
 	}
 
 }
+
+func TestDate_String(t *testing.T) {
+
+	testD := Date{2017, 05, 21}
+
+	testStr := testD.String()
+	if testStr != "2017-05-21" {
+		t.Fatal("unexpected format", testStr)
+	}
+}

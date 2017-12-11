@@ -62,10 +62,6 @@ func TestNewFortnoxClient(t *testing.T) {
 	if c.clientOptions.ClientSecret != "secret" {
 		t.Fatal("Incorrect secret")
 	}
-
-	if c.clientOptions.ContentType != "application/json" {
-		t.Fatal("Incorrect content type")
-	}
 }
 
 func TestGetOrders(t *testing.T) {
