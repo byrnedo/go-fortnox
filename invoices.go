@@ -61,7 +61,7 @@ type InvoiceFull struct {
 	Cancelled                 bool             `json:"Cancelled"`
 	City                      string           `json:"City"`
 	Comments                  string           `json:"Comments"`
-	ContractReference         int              `json:"ContractReference"`
+	ContractReference         Intish           `json:"ContractReference"`
 	ContributionPercent       Floatish         `json:"ContributionPercent"`
 	ContributionValue         Floatish         `json:"ContributionValue"`
 	CostCenter                string           `json:"CostCenter"`

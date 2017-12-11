@@ -307,7 +307,7 @@ func TestClient_UpdateOrder(t *testing.T) {
 		},
 	}
 
-	r, err = c.UpdateOrder(context.Background(), r.DocumentNumber.Value, update)
+	r, err = c.UpdateOrder(context.Background(), int(r.DocumentNumber), update)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -375,7 +375,7 @@ func TestClient_UpdateInvoice(t *testing.T) {
 		},
 	}
 
-	r, err = c.UpdateInvoice(context.Background(), r.DocumentNumber.Value, update)
+	r, err = c.UpdateInvoice(context.Background(), int(r.DocumentNumber), update)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,11 +18,11 @@ func TestFloatish_UnmarshalJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if testS.FloatFieldFromFloat.Value != 9.9999 {
-		t.Fatalf("unexpected value %.04f", testS.FloatFieldFromFloat.Value)
+	if testS.FloatFieldFromFloat != 9.9999 {
+		t.Fatalf("unexpected value %.04f", testS.FloatFieldFromFloat)
 	}
-	if testS.FloatFieldFromStr.Value != 8.8888 {
-		t.Fatalf("unexpected value %.04f", testS.FloatFieldFromStr.Value)
+	if testS.FloatFieldFromStr != 8.8888 {
+		t.Fatalf("unexpected value %.04f", testS.FloatFieldFromStr)
 	}
 }
 

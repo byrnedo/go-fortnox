@@ -6,9 +6,7 @@ import (
 )
 
 // Floatish type to allow unmarshalling from either string or float
-type Floatish struct {
-	Value float64
-}
+type Floatish float64
 
 func unmarshalIsh(data []byte, receiver interface{}) error {
 	if len(data) == 0 {
@@ -27,27 +25,21 @@ func unmarshalIsh(data []byte, receiver interface{}) error {
 
 // UnmarshalJSON to allow unmarshalling from either string or float
 func (f *Floatish) UnmarshalJSON(data []byte) error {
-	return unmarshalIsh(data, &f.Value)
-}
-
-// MarshalJSON to allow marshalling of underlying float
-func (f *Floatish) MarshalJSON() ([]byte, error) {
-	return json.Marshal(f.Value)
+	var newF float64
+	err := unmarshalIsh(data, &newF)
+	*f = Floatish(newF)
+	return err
 }
 
 // Intish type to allow unmarshalling from either string or int
-type Intish struct {
-	Value int
-}
+type Intish int
 
 // UnmarshalJSON to allow unmarshalling from either string or int
 func (f *Intish) UnmarshalJSON(data []byte) error {
-	return unmarshalIsh(data, &f.Value)
-}
-
-// MarshalJSON to allow marshalling of underlying int
-func (f *Intish) MarshalJSON() ([]byte, error) {
-	return json.Marshal(f.Value)
+	var newI int
+	err := unmarshalIsh(data, &newI)
+	*f = Intish(newI)
+	return err
 }
 
 // Date simple fortnox date holder
