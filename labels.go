@@ -50,3 +50,24 @@ func (c *Client) CreateLabel(ctx context.Context, name string) (*Label, error) {
 
 	return &resp.Label, nil
 }
+
+// An UpdateLabelsReq is used in updating labels
+type UpdateLabelsReq CreateLabelReq
+
+// UpdateLabel updates a label
+func (c *Client) UpdateLabel(ctx context.Context, id, name string) (*Label, error) {
+
+	resp := &LabelResp{}
+
+	req := CreateLabelReq{}
+	req.Label.Description = name
+	err := c.request(ctx, "PUT", "labels/"+id, &req, nil, resp)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Label, nil
+}
+
+func (c *Client) DeleteLabel(ctx context.Context, id string) error {
+	return c.deleteResource(ctx, "labels/"+id)
+}

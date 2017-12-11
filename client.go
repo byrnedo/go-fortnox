@@ -187,6 +187,15 @@ func (c *Client) makeURL(section string) (*url.URL, error) {
 	return u.ResolveReference(u2), nil
 }
 
+func (c *Client) deleteResource(ctx context.Context, resource string) error {
+
+	err := c.request(ctx, "DELETE", resource, nil, nil, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // MetaInformation for responses
 type MetaInformation struct {
 	CurrentPage    int `json:"@CurrentPage"`
