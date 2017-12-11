@@ -23,6 +23,11 @@ func unmarshalIsh(data []byte, receiver interface{}) error {
 	return json.Unmarshal(data, receiver)
 }
 
+// Float64 gets the value as float64
+func (f *Floatish) Float64() float64 {
+	return float64(f)
+}
+
 // UnmarshalJSON to allow unmarshalling from either string or float
 func (f *Floatish) UnmarshalJSON(data []byte) error {
 	var newF float64
@@ -33,6 +38,11 @@ func (f *Floatish) UnmarshalJSON(data []byte) error {
 
 // Intish type to allow unmarshalling from either string or int
 type Intish int
+
+// Int gets the value as int
+func (f *Intish) Int() int {
+	return int(f)
+}
 
 // UnmarshalJSON to allow unmarshalling from either string or int
 func (f *Intish) UnmarshalJSON(data []byte) error {
