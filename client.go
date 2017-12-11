@@ -75,10 +75,7 @@ type ClientOptions struct {
 	AccessToken string
 	// Client's integration secret
 	ClientSecret string
-	Accepts      string
-	ContentType  string
 	BaseURL      string
-	SkipVerify   bool
 	HTTPClient   *http.Client
 }
 
@@ -166,10 +163,8 @@ func NewClient(optionsFuncs ...OptionsFunc) *Client {
 	c := &http.Client{Timeout: defaultTimeout}
 
 	o := &ClientOptions{
-		Accepts:     mimeJSON,
-		ContentType: mimeJSON,
-		BaseURL:     DefaultURL,
-		HTTPClient:  c,
+		BaseURL:    DefaultURL,
+		HTTPClient: c,
 	}
 	for _, f := range optionsFuncs {
 		f(o)
