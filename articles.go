@@ -134,7 +134,7 @@ func (c *Client) CreateArticle(ctx context.Context, article *CreateArticle) (*Ar
 // UpdateArticle updates an order
 func (c *Client) UpdateArticle(ctx context.Context, id string, article *UpdateArticle) (*Article, error) {
 	resp := &ArticleResp{}
-	err := c.request(ctx, "POST", "articles/" + id, &struct {
+	err := c.request(ctx, "POST", "articles/"+id, &struct {
 		Article *UpdateArticle `json:"Article"`
 	}{
 		Article: article,
