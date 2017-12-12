@@ -190,12 +190,7 @@ func (c *Client) makeURL(section string) (*url.URL, error) {
 }
 
 func (c *Client) deleteResource(ctx context.Context, resource string) error {
-
-	err := c.request(ctx, "DELETE", resource, nil, nil, nil)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.request(ctx, "DELETE", resource, nil, nil, nil)
 }
 
 // MetaInformation for responses
@@ -262,7 +257,7 @@ func request(ctx context.Context, client *http.Client, headers map[string]string
 		return errors.Wrap(err, "error creating request")
 	}
 
-	req.WithContext(ctx)
+	req = req.WithContext(ctx)
 
 	for k, v := range defaultHeaders {
 		req.Header.Add(k, v)
