@@ -1,6 +1,6 @@
 # Go Fortnox Client
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/byrnedo/go-fortnox)](https://goreportcard.com/report/github.com/byrnedo/go-fortnox) [![GoDoc](https://godoc.org/github.com/byrnedo/go-fortnox?status.svg)](https://godoc.org/github.com/byrnedo/go-fortnox)
+[![Go Report Card](https://goreportcard.com/badge/github.com/byrnedo/go-fortnox)](https://goreportcard.com/report/github.com/byrnedo/go-fortnox) [![GoDoc](https://godoc.org/github.com/byrnedo/go-fortnox?status.svg)](https://godoc.org/github.com/byrnedo/go-fortnox) [![Build Status](https://travis-ci.org/byrnedo/go-fortnox.svg?branch=master)](https://travis-ci.org/byrnedo/go-fortnox)
 
 A client for [Fortnox's](https://www.fortnox.se) REST api.
 
