@@ -25,7 +25,10 @@ func unmarshalIsh(data []byte, receiver interface{}) error {
 
 // Float64 gets the value as float64
 func (f *Floatish) Float64() float64 {
-	return float64(f)
+	if f == nil {
+		return 0.0
+	}
+	return float64(*f)
 }
 
 // UnmarshalJSON to allow unmarshalling from either string or float
@@ -41,7 +44,10 @@ type Intish int
 
 // Int gets the value as int
 func (f *Intish) Int() int {
-	return int(f)
+	if f == nil {
+		return 0
+	}
+	return int(*f)
 }
 
 // UnmarshalJSON to allow unmarshalling from either string or int
