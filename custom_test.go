@@ -59,3 +59,24 @@ func TestDate_String(t *testing.T) {
 		t.Fatal("unexpected format", testStr)
 	}
 }
+
+func TestIntish_Int(t *testing.T) {
+	intish := Intish(99)
+
+	i := intish.Int()
+
+	if i != 99 {
+		t.Fatal("unexpected value", i)
+	}
+}
+
+func TestFloatish_Float64(t *testing.T) {
+	ish := Floatish(99.99)
+
+	f := ish.Float64()
+
+	if f != 99.99 {
+		t.Fatal("unexpected value", f)
+	}
+
+}

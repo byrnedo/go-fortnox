@@ -167,10 +167,49 @@ func TestClient_GetArticle(t *testing.T) {
 
 }
 
+func TestClient_CreateUpdateDeleteArticle(t *testing.T) {
+
+	c := NewClient(addTestOpts()...)
+	name := RandStringBytes(5)
+	desc := "Desc Text"
+	emptyStr := ""
+	art := &CreateArticle{
+		ArticleNumber: &name,
+		Description:   &desc,
+	}
+	r1, err := c.CreateArticle(context.Background(), art)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 == nil {
+		t.Fatal("Response was nil")
+	}
+
+	updateArt := &UpdateArticle{
+		ArticleNumber: &name,
+		Description:   &emptyStr,
+	}
+
+	r2, err := c.UpdateArticle(context.Background(), name, updateArt)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r2 == nil {
+		t.Fatal("Response was nil")
+	}
+
+	err = c.DeleteArticle(context.Background(), name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+}
+
 func TestClient_GetLabels(t *testing.T) {
 
 	c := NewClient(addTestOpts()...)
-
 	r, err := c.ListLabels(context.Background())
 	if err != nil {
 		t.Fatal(err)
