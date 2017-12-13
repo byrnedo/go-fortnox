@@ -6,7 +6,7 @@ A client for [Fortnox's](https://www.fortnox.se) REST api.
 
 ```go
 import (
-	"github.com/byrnedo/go-fortnox"
+    "github.com/byrnedo/go-fortnox"
     "context"
 )
 
