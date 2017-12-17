@@ -6,12 +6,13 @@ A client for [Fortnox's](https://www.fortnox.se) REST api.
 
 ```go
 import (
-	"github.com/byrnedo/go-fortnox"
+    "github.com/byrnedo/go-fortnox"
+    "context"
 )
 
 client := fortnox.NewClient(fortnox.WithAuthOpts("token", "secret"))
 
-order, err := client.GetOrder(docNumber)
+order, err := client.GetOrder(context.Background(), 1)
 if err != nil {
     return errors.Wrap(err, "Error getting order")
 }
