@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// A Customer is the payload in the responses from the customer endpoint
 type Customer struct {
 	URL            string `json:"@url"`
 	Active         bool   `json:"Active"`
@@ -81,6 +82,7 @@ type Customer struct {
 	ZipCode                  string  `json:"ZipCode"`
 }
 
+// A CreateCustomer is the payload when creating customer
 type CreateCustomer struct {
 	Active         *bool   `json:"Active,omitempty"`
 	Address1       *string `json:"Address1,omitempty"`
@@ -152,7 +154,7 @@ type CreateCustomer struct {
 	ZipCode                  *string  `json:"ZipCode,omitempty"`
 }
 
-// UpdateArticle data type
+// UpdateCustomer data type
 type UpdateCustomer CreateCustomer
 
 // ListCustomersResp is the response for ListCustomers
@@ -161,6 +163,7 @@ type ListCustomersResp struct {
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
+// A CustomerQueryParams is used for querying customers using ListCustomers
 type CustomerQueryParams struct {
 	City               string
 	CustomerNumber     string

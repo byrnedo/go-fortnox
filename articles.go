@@ -91,6 +91,7 @@ type ListArticlesResp struct {
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
+// ArticleQueryParams are used to query articles
 type ArticleQueryParams struct {
 	ArticleNumber             string
 	Description               string
