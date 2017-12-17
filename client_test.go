@@ -482,3 +482,29 @@ func TestClient_CreateUpdateDeleteCustomer(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestClient_ListCustomers(t *testing.T) {
+	c := NewClient(addTestOpts()...)
+	resp1, err := c.ListCustomers(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp1.MetaInformation == nil {
+		t.Fatal("missing meta")
+	}
+
+
+	query := &CustomerQueryParams{
+		City: "Gothenburg",
+	}
+	resp2, err := c.ListCustomers(context.Background(), query)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp2.MetaInformation == nil {
+		t.Fatal("missing meta")
+	}
+
+}
