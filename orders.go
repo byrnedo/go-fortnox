@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 )
 
 // EmailInformation data type
@@ -190,6 +191,62 @@ type OrderFull struct {
 	YourReference             string           `json:"YourReference"`
 	YourOrderNumber           string           `json:"YourOrderNumber"`
 	ZipCode                   string           `json:"ZipCode"`
+}
+
+// OrderQueryParams when searching orders/invoices
+// From fortnox docs:
+// SEARCH NAME	DESCRIPTION	EXAMPLE VALUE
+// lastmodified	Retrieves all records since the provided timestamp.	2014-03-10 12:30
+// financialyear	Selects what financial year that should be used	5
+// financialyeardate	Selects by date, what financial year that should be used	2014-03-10
+// fromdate	Defines a selection based on a start date.
+// Only available for invoices, orders, offers and vouchers.	2014-03-10
+// todate	Defines a selection based on an end date.
+// Only available for invoices, orders, offers and vouchers	 2014-03-10
+type OrderQueryParams struct {
+	LastModified      time.Time
+	FinancialYear     int
+	FinancialYearDate string
+	FromDate          string
+	ToDate            string
+	Page              int
+	Limit             int
+	Offset            int
+	Extra             map[string][]string
+}
+
+func (p OrderQueryParams) toValues() url.Values {
+
+	ret := make(url.Values)
+
+	if !p.LastModified.IsZero() {
+		ret["lastmodified"] = []string{p.LastModified.Format(TimeFormat)}
+	}
+	if p.FinancialYear > 0 {
+		ret["financialyear"] = []string{fmt.Sprintf("%d", p.FinancialYear)}
+	}
+	if len(p.FinancialYearDate) > 0 {
+		ret["financialyeardate"] = []string{p.FinancialYearDate}
+	}
+	if len(p.FromDate) > 0 {
+		ret["fromdate"] = []string{p.FromDate}
+	}
+	if len(p.ToDate) > 0 {
+		ret["todate"] = []string{p.ToDate}
+	}
+	if p.Limit > 0 {
+		ret["limit"] = []string{fmt.Sprintf("%d", p.Limit)}
+	}
+	if p.Offset > 0 {
+		ret["offset"] = []string{fmt.Sprintf("%d", p.Offset)}
+	}
+	if p.Page > 0 {
+		ret["page"] = []string{fmt.Sprintf("%d", p.Page)}
+	}
+	for k, vs := range p.Extra {
+		ret[k] = vs
+	}
+	return ret
 }
 
 // ListOrdersResp Response when listing orders
