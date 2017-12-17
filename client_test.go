@@ -494,7 +494,6 @@ func TestClient_ListCustomers(t *testing.T) {
 		t.Fatal("missing meta")
 	}
 
-
 	query := &CustomerQueryParams{
 		City: "Gothenburg",
 	}

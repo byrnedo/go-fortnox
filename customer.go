@@ -2,23 +2,23 @@ package fortnox
 
 import (
 	"context"
-	"net/url"
 	"fmt"
+	"net/url"
 )
 
 // A Customer is the payload in the responses from the customer endpoint
 type Customer struct {
-	URL            string `json:"@url"`
-	Active         bool   `json:"Active"`
-	Address1       string `json:"Address1"`
-	Address2       string `json:"Address2"`
-	City           string `json:"City"`
-	Comments       string `json:"Comments"`
-	CostCenter     string `json:"CostCenter"`
-	Country        string `json:"Country"`
-	CountryCode    string `json:"CountryCode"`
-	Currency       string `json:"Currency"`
-	CustomerNumber string `json:"CustomerNumber"`
+	URL                  string `json:"@url"`
+	Active               bool   `json:"Active"`
+	Address1             string `json:"Address1"`
+	Address2             string `json:"Address2"`
+	City                 string `json:"City"`
+	Comments             string `json:"Comments"`
+	CostCenter           string `json:"CostCenter"`
+	Country              string `json:"Country"`
+	CountryCode          string `json:"CountryCode"`
+	Currency             string `json:"Currency"`
+	CustomerNumber       string `json:"CustomerNumber"`
 	DefaultDeliveryTypes struct {
 		Invoice string `json:"Invoice"`
 		Offer   string `json:"Offer"`
@@ -84,15 +84,15 @@ type Customer struct {
 
 // A CreateCustomer is the payload when creating customer
 type CreateCustomer struct {
-	Active         *bool   `json:"Active,omitempty"`
-	Address1       *string `json:"Address1,omitempty"`
-	Address2       *string `json:"Address2,omitempty"`
-	City           *string `json:"City,omitempty"`
-	Comments       *string `json:"Comments,omitempty"`
-	CostCenter     *string `json:"CostCenter,omitempty"`
-	CountryCode    *string `json:"CountryCode,omitempty"`
-	Currency       *string `json:"Currency,omitempty"`
-	CustomerNumber *string  `json:"CustomerNumber,omitempty"`
+	Active               *bool   `json:"Active,omitempty"`
+	Address1             *string `json:"Address1,omitempty"`
+	Address2             *string `json:"Address2,omitempty"`
+	City                 *string `json:"City,omitempty"`
+	Comments             *string `json:"Comments,omitempty"`
+	CostCenter           *string `json:"CostCenter,omitempty"`
+	CountryCode          *string `json:"CountryCode,omitempty"`
+	Currency             *string `json:"Currency,omitempty"`
+	CustomerNumber       *string `json:"CustomerNumber,omitempty"`
 	DefaultDeliveryTypes *struct {
 		Invoice *string `json:"Invoice,omitempty"`
 		Offer   *string `json:"Offer,omitempty"`

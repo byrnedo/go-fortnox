@@ -2,8 +2,8 @@ package fortnox
 
 import (
 	"context"
-	"net/url"
 	"fmt"
+	"net/url"
 )
 
 // Article data type
