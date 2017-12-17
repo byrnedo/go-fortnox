@@ -468,7 +468,7 @@ func TestClient_CreateUpdateDeleteCustomer(t *testing.T) {
 		Name: &name2,
 	}
 
-	r2, err := c.UpdateCustomer(context.Background(), name, updateCust)
+	r2, err := c.UpdateCustomer(context.Background(), r1.CustomerNumber, updateCust)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -477,7 +477,7 @@ func TestClient_CreateUpdateDeleteCustomer(t *testing.T) {
 		t.Fatal("Response was nil")
 	}
 
-	err = c.DeleteCustomer(context.Background(), name)
+	err = c.DeleteCustomer(context.Background(), r1.CustomerNumber)
 	if err != nil {
 		t.Fatal(err)
 	}
