@@ -446,3 +446,39 @@ func checkTextInvoiceRow(row InvoiceRow, desc string, t *testing.T) {
 	}
 
 }
+
+func TestClient_CreateUpdateDeleteCustomer(t *testing.T) {
+
+	c := NewClient(addTestOpts()...)
+	name := "test customer " + RandStringBytes(5)
+	cust := &CreateCustomer{
+		Name: &name,
+	}
+	r1, err := c.CreateCustomer(context.Background(), cust)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 == nil {
+		t.Fatal("Response was nil")
+	}
+
+	name2 := name + "update"
+	updateCust := &UpdateCustomer{
+		Name: &name2,
+	}
+
+	r2, err := c.UpdateCustomer(context.Background(), name, updateCust)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r2 == nil {
+		t.Fatal("Response was nil")
+	}
+
+	err = c.DeleteCustomer(context.Background(), name)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

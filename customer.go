@@ -17,7 +17,7 @@ type Customer struct {
 	Country        string `json:"Country"`
 	CountryCode    string `json:"CountryCode"`
 	Currency       string `json:"Currency"`
-	CustomerNumber Intish `json:"CustomerNumber"`
+	CustomerNumber string `json:"CustomerNumber"`
 	DefaultDeliveryTypes struct {
 		Invoice string `json:"Invoice"`
 		Offer   string `json:"Offer"`
@@ -90,7 +90,7 @@ type CreateCustomer struct {
 	CostCenter     *string `json:"CostCenter"`
 	CountryCode    *string `json:"CountryCode"`
 	Currency       *string `json:"Currency"`
-	CustomerNumber Intish  `json:"CustomerNumber"`
+	CustomerNumber *string  `json:"CustomerNumber"`
 	DefaultDeliveryTypes *struct {
 		Invoice *string `json:"Invoice"`
 		Offer   *string `json:"Offer"`
