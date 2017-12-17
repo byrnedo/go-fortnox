@@ -81,7 +81,7 @@ type ClientOptions struct {
 	HTTPClient   *http.Client
 }
 
-// QueryParams when searching orders/invoices
+// OrderQueryParams when searching orders/invoices
 // From fortnox docs:
 // SEARCH NAME	DESCRIPTION	EXAMPLE VALUE
 // lastmodified	Retrieves all records since the provided timestamp.	2014-03-10 12:30
@@ -91,7 +91,7 @@ type ClientOptions struct {
 // Only available for invoices, orders, offers and vouchers.	2014-03-10
 // todate	Defines a selection based on an end date.
 // Only available for invoices, orders, offers and vouchers	 2014-03-10
-type QueryParams struct {
+type OrderQueryParams struct {
 	LastModified      time.Time
 	FinancialYear     int
 	FinancialYearDate string
@@ -103,9 +103,10 @@ type QueryParams struct {
 	Extra             map[string][]string
 }
 
-func (p *QueryParams) toValues() url.Values {
+func (p OrderQueryParams) toValues() url.Values {
 
 	ret := make(url.Values)
+
 	if !p.LastModified.IsZero() {
 		ret["lastmodified"] = []string{p.LastModified.Format(TimeFormat)}
 	}
@@ -207,14 +208,14 @@ type ErrorMessage struct {
 	Code    int    `json:"Code"`
 }
 
-func (c *Client) request(ctx context.Context, method, resource string, body interface{}, p *QueryParams, result interface{}) error {
+func (c *Client) request(ctx context.Context, method, resource string, body interface{}, p url.Values, result interface{}) error {
 	u, err := c.makeURL(resource)
 	if err != nil {
 		return err
 	}
 
-	if p != nil {
-		u.RawQuery = p.toValues().Encode()
+	if len(p) > 0 {
+		u.RawQuery = p.Encode()
 	}
 
 	headers := map[string]string{

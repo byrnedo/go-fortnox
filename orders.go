@@ -3,6 +3,7 @@ package fortnox
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // EmailInformation data type
@@ -198,11 +199,16 @@ type ListOrdersResp struct {
 }
 
 // ListOrders or search orders
-func (c *Client) ListOrders(ctx context.Context, p *QueryParams) (*ListOrdersResp, error) {
+func (c *Client) ListOrders(ctx context.Context, p *OrderQueryParams) (*ListOrdersResp, error) {
 
 	resp := &ListOrdersResp{}
 
-	err := c.request(ctx, "GET", "orders", nil, p, resp)
+	var vals url.Values
+	if p != nil {
+		vals = p.toValues()
+	}
+
+	err := c.request(ctx, "GET", "orders", nil, vals, resp)
 	if err != nil {
 		return nil, err
 	}

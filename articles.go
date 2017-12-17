@@ -1,6 +1,10 @@
 package fortnox
 
-import "context"
+import (
+	"context"
+	"net/url"
+	"fmt"
+)
 
 // Article data type
 type Article struct {
@@ -87,11 +91,66 @@ type ListArticlesResp struct {
 	MetaInformation *MetaInformation `json:"MetaInformation"`
 }
 
+type ArticleQueryParams struct {
+	ArticleNumber             string
+	Description               string
+	EAN                       string
+	Manufacturer              string
+	ManufacturerArticleNumber string
+	SupplierName              string
+	Page                      int
+	Limit                     int
+	Offset                    int
+	Extra                     map[string][]string
+}
+
+func (p ArticleQueryParams) toValues() url.Values {
+
+	ret := make(url.Values)
+
+	if len(p.ArticleNumber) > 0 {
+		ret["articlenumber"] = []string{p.ArticleNumber}
+	}
+	if len(p.Description) > 0 {
+		ret["description"] = []string{p.Description}
+	}
+	if len(p.EAN) > 0 {
+		ret["ean"] = []string{p.EAN}
+	}
+	if len(p.Manufacturer) > 0 {
+		ret["manufacturer"] = []string{p.Manufacturer}
+	}
+	if len(p.ManufacturerArticleNumber) > 0 {
+		ret["manufacturerarticlenumber"] = []string{p.ManufacturerArticleNumber}
+	}
+	if len(p.SupplierName) > 0 {
+		ret["suppliername"] = []string{p.SupplierName}
+	}
+	if p.Limit > 0 {
+		ret["limit"] = []string{fmt.Sprintf("%d", p.Limit)}
+	}
+	if p.Offset > 0 {
+		ret["offset"] = []string{fmt.Sprintf("%d", p.Offset)}
+	}
+	if p.Page > 0 {
+		ret["page"] = []string{fmt.Sprintf("%d", p.Page)}
+	}
+	for k, vs := range p.Extra {
+		ret[k] = vs
+	}
+	return ret
+}
+
 // ListArticles lists or searches articles
-func (c *Client) ListArticles(ctx context.Context, p *QueryParams) (*ListArticlesResp, error) {
+func (c *Client) ListArticles(ctx context.Context, p *ArticleQueryParams) (*ListArticlesResp, error) {
 	resp := &ListArticlesResp{}
 
-	err := c.request(ctx, "GET", "articles", nil, p, resp)
+	var vals url.Values
+	if p != nil {
+		vals = p.toValues()
+	}
+
+	err := c.request(ctx, "GET", "articles", nil, vals, resp)
 	if err != nil {
 		return nil, err
 	}

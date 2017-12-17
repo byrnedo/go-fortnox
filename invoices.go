@@ -3,6 +3,7 @@ package fortnox
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
 // InvoiceRow data type
@@ -200,10 +201,15 @@ type ListInvoicesResp struct {
 }
 
 // ListInvoices lists invoices
-func (c *Client) ListInvoices(ctx context.Context, p *QueryParams) (*ListInvoicesResp, error) {
+func (c *Client) ListInvoices(ctx context.Context, p *OrderQueryParams) (*ListInvoicesResp, error) {
 	resp := &ListInvoicesResp{}
 
-	err := c.request(ctx, "GET", "invoices", nil, p, resp)
+	var vals url.Values
+	if p != nil {
+		vals = p.toValues()
+	}
+
+	err := c.request(ctx, "GET", "invoices", nil, vals, resp)
 	if err != nil {
 		return nil, err
 	}
