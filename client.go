@@ -225,18 +225,34 @@ func request(ctx context.Context, client *http.Client, headers map[string]string
 
 	switch resp.StatusCode {
 	case 200, 201:
+		bodyPreview, _ := getRespBodyPreview(resp, 30)
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return errors.Wrap(err, "failed to decode json")
+			return errors.Wrap(err, "failed to decode json from response ["+bodyPreview+"]")
 		}
 		return nil
 	case 204:
 		return nil
 	default:
+		// if malformed, want to see the a
 		errMsg := &ErrorResp{}
+		bodyPreview, _ := getRespBodyPreview(resp, 128)
 		if err := json.NewDecoder(resp.Body).Decode(&errMsg); err != nil {
-			return errors.Wrap(err, "failed to decode json")
+			return errors.Wrap(err, fmt.Sprintf("failed to decode %d error from response [%s]", resp.StatusCode, bodyPreview))
 		}
 		return FnoxError{HTTPStatus: resp.StatusCode, Code: errMsg.ErrorInformation.Code, Message: errMsg.ErrorInformation.Message}
 	}
 
+}
+
+// Get a preview of the body without affecting the resp.Body reader
+func getRespBodyPreview(resp *http.Response, len int64) (string, error) {
+
+	part, err := ioutil.ReadAll(io.LimitReader(resp.Body, len))
+	if err != nil {
+		return "", err
+	}
+
+	// recombine the buffered part of the body with the rest of the stream
+	resp.Body = ioutil.NopCloser(io.MultiReader(bytes.NewReader(part), resp.Body))
+	return string(part), nil
 }
