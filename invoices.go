@@ -15,27 +15,27 @@ type CreateInvoiceRow CreateOrderRow
 
 // InvoiceShort data type
 type InvoiceShort struct {
-	URL                       string   `json:"@url"`
-	Balance                   float64  `json:"Balance"`
-	Booked                    bool     `json:"Booked"`
-	Cancelled                 bool     `json:"Cancelled"`
-	Currency                  string   `json:"Currency"`
-	CurrencyRate              Floatish `json:"CurrencyRate"`
-	CurrencyUnit              float64  `json:"CurrencyUnit"`
-	CustomerName              string   `json:"CustomerName"`
-	CustomerNumber            string   `json:"CustomerNumber"`
-	DocumentNumber            Intish   `json:"DocumentNumber"`
-	DueDate                   Date     `json:"DueDate"`
-	ExternalInvoiceReference1 string   `json:"ExternalInvoiceReference1"`
-	ExternalInvoiceReference2 string   `json:"ExternalInvoiceReference2"`
-	InvoiceDate               Date     `json:"InvoiceDate"`
-	NoxFinans                 bool     `json:"NoxFinans"`
-	OCR                       string   `json:"OCR"`
-	Project                   string   `json:"Project"`
-	Sent                      bool     `json:"Sent"`
-	TermsOfPayment            Intish   `json:"TermsOfPayment"`
-	Total                     float64  `json:"Total"`
-	WayOfDelivery             string   `json:"WayOfDelivery"`
+	URL                       string    `json:"@url"`
+	Balance                   float64   `json:"Balance"`
+	Booked                    bool      `json:"Booked"`
+	Cancelled                 bool      `json:"Cancelled"`
+	Currency                  string    `json:"Currency"`
+	CurrencyRate              Floatish  `json:"CurrencyRate"`
+	CurrencyUnit              float64   `json:"CurrencyUnit"`
+	CustomerName              string    `json:"CustomerName"`
+	CustomerNumber            string    `json:"CustomerNumber"`
+	DocumentNumber            Intish    `json:"DocumentNumber"`
+	DueDate                   Date      `json:"DueDate"`
+	ExternalInvoiceReference1 string    `json:"ExternalInvoiceReference1"`
+	ExternalInvoiceReference2 string    `json:"ExternalInvoiceReference2"`
+	InvoiceDate               Date      `json:"InvoiceDate"`
+	NoxFinans                 bool      `json:"NoxFinans"`
+	OCR                       string    `json:"OCR"`
+	Project                   string    `json:"Project"`
+	Sent                      bool      `json:"Sent"`
+	TermsOfPayment            StringIsh `json:"TermsOfPayment"`
+	Total                     float64   `json:"Total"`
+	WayOfDelivery             string    `json:"WayOfDelivery"`
 }
 
 // EDIInformation data type
@@ -122,7 +122,7 @@ type InvoiceFull struct {
 	Sent                      bool             `json:"Sent"`
 	TaxReduction              int              `json:"TaxReduction"`
 	TermsOfDelivery           string           `json:"TermsOfDelivery"`
-	TermsOfPayment            Intish           `json:"TermsOfPayment"`
+	TermsOfPayment            StringIsh        `json:"TermsOfPayment"`
 	Total                     float64          `json:"Total"`
 	TotalToPay                float64          `json:"TotalToPay"`
 	TotalVAT                  float64          `json:"TotalVAT"`
@@ -184,7 +184,7 @@ type CreateInvoice struct {
 	Project                   *string             `json:"Project,omitempty"`
 	Remarks                   *string             `json:"Remarks,omitempty"`
 	TermsOfDelivery           *string             `json:"TermsOfDelivery,omitempty"`
-	TermsOfPayment            Intish              `json:"TermsOfPayment,omitempty"`
+	TermsOfPayment            *StringIsh          `json:"TermsOfPayment,omitempty"`
 	VATIncluded               *bool               `json:"VATIncluded,omitempty"`
 	WayOfDelivery             *string             `json:"WayOfDelivery,omitempty"`
 	YourOrderNumber           *string             `json:"YourOrderNumber,omitempty"`

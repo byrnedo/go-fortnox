@@ -80,3 +80,30 @@ func TestFloatish_Float64(t *testing.T) {
 	}
 
 }
+
+func TestStringIsh_UnmarshalJSON(t *testing.T) {
+
+	testS := struct {
+		SomeString StringIsh
+	}{}
+
+	testPayload := `{"SomeString": 1988}`
+
+	if err := json.Unmarshal([]byte(testPayload), &testS); err != nil {
+		t.Fatal(err)
+	}
+
+	if testS.SomeString != "1988" {
+		t.Fatalf("unexpected value %d", testS.SomeString)
+	}
+
+	testPayload = `{"SomeString": "1989"}`
+
+	if err := json.Unmarshal([]byte(testPayload), &testS); err != nil {
+		t.Fatal(err)
+	}
+
+	if testS.SomeString != "1989" {
+		t.Fatalf("unexpected value %d", testS.SomeString)
+	}
+}

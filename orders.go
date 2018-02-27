@@ -114,7 +114,7 @@ type CreateOrder struct {
 	Project                   *string           `json:"Project,omitempty"`
 	Remarks                   *string           `json:"Remarks,omitempty"`
 	TermsOfDelivery           *string           `json:"TermsOfDelivery,omitempty"`
-	TermsOfPayment            *Intish           `json:"TermsOfPayment,omitempty"`
+	TermsOfPayment            *StringIsh        `json:"TermsOfPayment,omitempty"`
 	VATIncluded               *bool             `json:"VATIncluded,omitempty"`
 	WayOfDelivery             *string           `json:"WayOfDelivery,omitempty"`
 	YourReference             *string           `json:"YourReference,omitempty"`
@@ -182,7 +182,7 @@ type OrderFull struct {
 	Sent                      bool             `json:"Sent"`
 	TaxReduction              float64          `json:"TaxReduction"`
 	TermsOfDelivery           string           `json:"TermsOfDelivery"`
-	TermsOfPayment            Intish           `json:"TermsOfPayment"`
+	TermsOfPayment            StringIsh        `json:"TermsOfPayment"`
 	Total                     float64          `json:"Total"`
 	TotalToPay                float64          `json:"TotalToPay"`
 	TotalVat                  float64          `json:"TotalVat,omitempty"`

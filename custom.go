@@ -3,7 +3,30 @@ package fortnox
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
+
+// Stringish exists because fnox send back integers unquoted even if underlying type is string
+type StringIsh string
+
+func (f *StringIsh) UnmarshalJSON(data []byte) error {
+
+	var receiver string
+	if len(data) == 0 {
+		return nil
+	}
+	if data[0] != '"' {
+		quoted := strconv.Quote(string(data))
+		data = []byte(quoted)
+	}
+
+	if err := json.Unmarshal(data, &receiver); err != nil {
+		return err
+	}
+	*f = StringIsh(receiver)
+	return nil
+
+}
 
 // Floatish type to allow unmarshalling from either string or float
 type Floatish float64
