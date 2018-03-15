@@ -20,15 +20,15 @@ type Customer struct {
 	Currency             string `json:"Currency"`
 	CustomerNumber       string `json:"CustomerNumber"`
 	DefaultDeliveryTypes struct {
-		Invoice string `json:"Invoice"`
-		Offer   string `json:"Offer"`
-		Order   string `json:"Order"`
+		Invoice StringIsh `json:"Invoice"`
+		Offer   StringIsh `json:"Offer"`
+		Order   StringIsh `json:"Order"`
 	} `json:"DefaultDeliveryTypes"`
 	DefaultTemplates struct {
-		CashInvoice string `json:"CashInvoice"`
-		Invoice     string `json:"Invoice"`
-		Offer       string `json:"Offer"`
-		Order       string `json:"Order"`
+		CashInvoice StringIsh `json:"CashInvoice"`
+		Invoice     StringIsh `json:"Invoice"`
+		Offer       StringIsh `json:"Offer"`
+		Order       StringIsh `json:"Order"`
 	} `json:"DefaultTemplates"`
 	DeliveryAddress1         string    `json:"DeliveryAddress1"`
 	DeliveryAddress2         string    `json:"DeliveryAddress2"`
