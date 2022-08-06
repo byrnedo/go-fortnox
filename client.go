@@ -163,7 +163,7 @@ func (c *Client) request(ctx context.Context, method, resource string, body inte
 	}
 
 	headers := map[string]string{
-		"Access-Token":  c.clientOptions.AccessToken,
+		"Authorization": fmt.Sprintf("Bearer %s", c.clientOptions.AccessToken),
 		"Client-Secret": c.clientOptions.ClientSecret,
 	}
 
